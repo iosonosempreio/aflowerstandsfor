@@ -41,7 +41,7 @@ class Test extends Component {
   componentDidMount() {
     d3.csv(data_url).then(csv=>{
 
-      csv = csv.filter(d=>d.denominazione_regione==='Sicilia'||d.denominazione_regione==="Valle d'Aosta"||d.denominazione_regione==="Lazio")
+      // csv = csv.filter(d=>d.denominazione_regione==='Sicilia'||d.denominazione_regione==="Valle d'Aosta"||d.denominazione_regione==="Lazio")
 
       const byDates = d3.nest()
         .key(d=>d.data)
@@ -100,17 +100,20 @@ class Test extends Component {
         simulation.nodes(data)
           .on('tick', ()=>{
             // console.log(simulation.alpha());
-            nodes
-              .attr('x',d=>d.x)
-              .attr('y',d=>d.y);
+            document.title = simulation.alpha().toFixed(4);
+            // nodes
+            //   .attr('x',d=>d.x)
+            //   .attr('y',d=>d.y);
           })
           .force("x", d3.forceX(d=>d.x))
           .force("y", d3.forceY(d=>d.y))
           .force("collision", d3.forceCollide(0.35))
-          // .alphaMin(0.3)
+          .alphaDecay(0.005)
           .alpha(1)
           .on("end", () => {
-
+            nodes
+              .attr('x',d=>d.x)
+              .attr('y',d=>d.y);
             console.log('ended',data);
 
             if (window.confirm("🌺🌿☘️🌼🌸 download spatialized data?")) {
