@@ -69,8 +69,8 @@ class PixiViz extends Component {
         // Draw Italy
         // adapted from https://gist.github.com/armollica/3598b8c89e1f18ea453231da41c7c3bc
         projection = d3.geoConicEqualArea()
-          .fitSize([window.innerWidth -200, window.innerHeight-200], this._rootNode)
-          .translate([window.innerWidth / 2, window.innerHeight / 2])
+          .fitSize([Utilities.map.width-50, Utilities.map.height-50], this._rootNode)
+          .translate([Utilities.map.width / 2, Utilities.map.height / 2])
           .scale(3000)
           .center([12.368775000000001, 42.9451139]);
 

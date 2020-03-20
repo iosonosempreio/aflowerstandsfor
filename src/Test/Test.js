@@ -5,8 +5,7 @@ import FileSaver from 'file-saver';
 import Utilities from '../Utilities/Utilities';
 
 const data_url = 'https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-regioni/dpc-covid19-ita-regioni.csv';
-const simulation = d3.forceSimulation()
-    .stop();
+const simulation = d3.forceSimulation().stop();
 
 const size = Utilities.emoji.size/Utilities.clampZoomOptions.maxScale;
 
@@ -27,18 +26,18 @@ class Test extends Component {
 
       // csv = csv.filter(d=>d.denominazione_regione==='Sicilia'||d.denominazione_regione==="Valle d'Aosta"||d.denominazione_regione==="Lazio")
       // csv = csv.filter(d=>d.denominazione_regione==='Lombardia')
+      // csv = csv.filter(d=>d.denominazione_regione==='Lazio')
 
       const byDates = d3.nest()
         .key(d=>d.data)
         .entries(csv);
       
       const raw_data = byDates[byDates.length-1].values;
-      console.log(raw_data);
       const data = [];
 
       projection = d3.geoConicEqualArea()
-        .fitSize([window.innerWidth -200, window.innerHeight-200], this._rootNode)
-        .translate([window.innerWidth / 2, window.innerHeight / 2])
+        .fitSize([Utilities.map.width-50, Utilities.map.height-50], this._rootNode)
+        .translate([Utilities.map.width / 2, Utilities.map.height / 2])
         .scale(3000)
         .center([12.368775000000001, 42.9451139]);
 
@@ -82,26 +81,30 @@ class Test extends Component {
           .attr('font-size',size+'px')
           .text(d=>Utilities.emoji_dictionary[d.category]);
 
-        const alphaDecay = window.prompt('Set the alpha decay of force simulation', 0.005);
+        const alphaDecay = window.prompt('Set the alpha decay of force simulation, once finished it will generate a JSON with the spatialized positions', 0.05);
 
         simulation.nodes(data)
+          // .on("tick", ()=>{
+          //   nodes
+          //     .attr('x',d=>d.x)
+          //     .attr('y',d=>d.y);
+          //   document.title = simulation.alpha();
+          // })
           .force("x", d3.forceX(d=>d._x))
           .force("y", d3.forceY(d=>d._y))
-          .force("charge", d3.forceManyBody().strength(-0.08))
-          // .force("collision", d3.forceCollide(size/2*0.9).iterations(4))
+          .force("charge", d3.forceManyBody().strength(-0.09))
           .alphaDecay(alphaDecay)
           .alpha(1)
           .on("end", () => {
+            console.log('ended',data, simulation);
+            simulationIsRunning = false;
+
             nodes
               .attr('x',d=>d.x)
               .attr('y',d=>d.y);
-            console.log('ended',data);
-
-            // if (window.confirm("🌺🌿☘️🌼🌸 download spatialized data?")) {
-              
-            // }
 
             for (let i=0; i<data.length; ++i){
+              console.log(i);
               data[i]._x = data[i].x;
               data[i]._y = data[i].y;
               delete data[i].index;
@@ -115,30 +118,29 @@ class Test extends Component {
 
           })
           .restart();
+        
+        let simulationIsRunning = true;
 
         spatialization()
         function spatialization() {
-          if (simulation.alpha() > 0.1) {
-            document.title = simulation.alpha().toFixed(4);
-
-            // nodes
-            //   .attr('x',d=>d.x)
-            //   .attr('y',d=>d.y);
-
+          if (simulationIsRunning) {
+            document.title = 'a = ' + simulation.alpha();
+            nodes
+              .attr('x',d=>d.x)
+              .attr('y',d=>d.y);
             requestAnimationFrame(spatialization)
           }
         }
 
         document.addEventListener("keypress", async function(event){
           if (event.key==='r') {
-            simulation.alpha(0.5).restart();
+            simulation.alpha(1).restart();
           }
         });
       })
     })
   }
   render() {
-    console.log(this.state.data);
     return <svg ref={this._setRef.bind(this)} style={{ width:'100%', height:'100%'}}></svg>;
   }
 }
