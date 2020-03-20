@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
 
 importScripts(
-  "/covi-z/precache-manifest.9fa3f35279ab5d793ebc92187ba32ee8.js"
+  "/covi-z/precache-manifest.5859d2af66e68186cfca1f2da56e6613.js"
 );
 
 self.addEventListener('message', (event) => {
