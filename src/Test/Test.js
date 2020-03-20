@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import * as d3 from 'd3';
 import FileSaver from 'file-saver';
 
+import Utilities from '../Utilities/Utilities';
+
 const data_url = 'https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-regioni/dpc-covid19-ita-regioni.csv';
 const categories = [
   "ricoverati_con_sintomi",
@@ -42,6 +44,7 @@ class Test extends Component {
     d3.csv(data_url).then(csv=>{
 
       // csv = csv.filter(d=>d.denominazione_regione==='Sicilia'||d.denominazione_regione==="Valle d'Aosta"||d.denominazione_regione==="Lazio")
+      // csv = csv.filter(d=>d.denominazione_regione==='Lombardia')
 
       const byDates = d3.nest()
         .key(d=>d.data)
@@ -63,9 +66,9 @@ class Test extends Component {
         r.y = point[1];
       })
 
-      for(var i=0; i<raw_data.length; ++i) {
+      for(let i=0; i<raw_data.length; ++i) {
         categories.forEach(c=>{
-          for (var ii=0; ii<raw_data[i][c]; ++ii){
+          for (let ii=0; ii<raw_data[i][c]; ++ii){
             const obj={
               'category': c,
               'denominazione_regione': raw_data[i].denominazione_regione,
@@ -92,10 +95,10 @@ class Test extends Component {
         }
 
         let nodes = g.selectAll('text').data(this.state.data).enter().append('text')
-          .attr('font-size','1px')
+          .attr('font-size',Utilities.emoji.size+'px')
           .text(d=>emoji_dictionary[d.category]);
 
-        
+        const alphaDecay = window.prompt('Set the alpha decay of force simulation', 0.005);
 
         simulation.nodes(data)
           .on('tick', ()=>{
@@ -108,7 +111,7 @@ class Test extends Component {
           .force("x", d3.forceX(d=>d.x))
           .force("y", d3.forceY(d=>d.y))
           .force("collision", d3.forceCollide(0.35))
-          .alphaDecay(0.005)
+          .alphaDecay(alphaDecay)
           .alpha(1)
           .on("end", () => {
             nodes
@@ -117,8 +120,13 @@ class Test extends Component {
             console.log('ended',data);
 
             if (window.confirm("🌺🌿☘️🌼🌸 download spatialized data?")) {
+              for (let i=0; i<data.length; ++i){
+                delete data[i].index;
+                delete data[i].vx;
+                delete data[i].vy;
+              }
               var blob = new Blob([JSON.stringify(data)], {type: "application/json;charset=utf-8"});
-              FileSaver.saveAs(blob, "data covi-z.json");
+              FileSaver.saveAs(blob, "covi-z.json");
             }
 
           })
