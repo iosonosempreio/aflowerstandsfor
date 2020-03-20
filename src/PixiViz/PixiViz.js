@@ -6,7 +6,11 @@ import html2canvas from 'html2canvas';
 
 import Utilities from '../Utilities/Utilities';
 
-let pixiApp, viewport, container, width = window.innerWidth, height = window.innerHeight, dpr = window.devicePixelRatio || 1;
+let pixiApp, viewport, container,
+    width = window.innerWidth,
+    height = window.innerHeight,
+    dpr = window.devicePixelRatio || 1,
+    size = Utilities.emoji.size;
 
 class PixiViz extends Component {
   constructor(props) {
@@ -68,10 +72,13 @@ class PixiViz extends Component {
           sprite.anchor.set(0.5);
 
           // move the sprite to the center of the screen
-          sprite.x = data[i].x;
-          sprite.y = data[i].y;
-          sprite.scale.x = 0.05;
-          sprite.scale.y = 0.05;
+          sprite.x = data[i]._x;
+          sprite.y = data[i]._y;
+          sprite.scale.x = 1/dpr/Utilities.clampZoomOptions.maxScale;
+          sprite.scale.y = 1/dpr/Utilities.clampZoomOptions.maxScale;
+
+          // sprite.scale.x = 0.1;
+          // sprite.scale.y = 0.1;
 
           container.addChild(sprite);
         }
@@ -97,8 +104,9 @@ class PixiViz extends Component {
   }
   render() {
     return <div style={{width:'100%',height:'100%'}} ref={this._setRef.bind(this)}>
-      {Object.keys(this.state.textures).length===0 && 
-        <div id="textures-generation" style={{fontSize:Utilities.emoji.size+'px',position:'absolute', top:'-100px'}}>
+      {true && 
+        //Object.keys(this.state.textures).length===0
+        <div id="textures-generation" style={{fontSize:size+'px',position:'absolute', top:'10px'}}>
           { Object.keys(Utilities.emoji_dictionary).map(d=>{
             return <span id={d} key={`emoji-${d}`}>{Utilities.emoji_dictionary[d]}</span>
           }) }
