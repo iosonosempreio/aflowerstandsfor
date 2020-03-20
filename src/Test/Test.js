@@ -26,7 +26,7 @@ class Test extends Component {
     d3.csv(data_url).then(csv=>{
 
       // csv = csv.filter(d=>d.denominazione_regione==='Sicilia'||d.denominazione_regione==="Valle d'Aosta"||d.denominazione_regione==="Lazio")
-      // csv = csv.filter(d=>d.denominazione_regione==='Lazio')
+      // csv = csv.filter(d=>d.denominazione_regione==='Lombardia')
 
       const byDates = d3.nest()
         .key(d=>d.data)
@@ -57,8 +57,8 @@ class Test extends Component {
               'date': raw_data[i].data,
               '_x': raw_data.find(dd=>dd.denominazione_regione===raw_data[i].denominazione_regione).x,
               '_y': raw_data.find(dd=>dd.denominazione_regione===raw_data[i].denominazione_regione).y,
-              'x': window.innerWidth*Math.random(),
-              'y': window.innerHeight*Math.random()
+              'x': raw_data.find(dd=>dd.denominazione_regione===raw_data[i].denominazione_regione).x + d3.randomUniform(-50,50)(),
+              'y': raw_data.find(dd=>dd.denominazione_regione===raw_data[i].denominazione_regione).y + d3.randomUniform(-50,50)()
             }
             data.push(obj);
           }
@@ -88,7 +88,7 @@ class Test extends Component {
           .force("x", d3.forceX(d=>d._x))
           .force("y", d3.forceY(d=>d._y))
           .force("charge", d3.forceManyBody().strength(-0.08))
-          .force("collision", d3.forceCollide(size/2*0.9).iterations(4))
+          // .force("collision", d3.forceCollide(size/2*0.9).iterations(4))
           .alphaDecay(alphaDecay)
           .alpha(1)
           .on("end", () => {
@@ -121,9 +121,9 @@ class Test extends Component {
           if (simulation.alpha() > 0.1) {
             document.title = simulation.alpha().toFixed(4);
 
-            nodes
-              .attr('x',d=>d.x)
-              .attr('y',d=>d.y);
+            // nodes
+            //   .attr('x',d=>d.x)
+            //   .attr('y',d=>d.y);
 
             requestAnimationFrame(spatialization)
           }
