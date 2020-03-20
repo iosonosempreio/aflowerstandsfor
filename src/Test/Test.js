@@ -97,19 +97,21 @@ class Test extends Component {
               .attr('y',d=>d.y);
             console.log('ended',data);
 
-            if (window.confirm("🌺🌿☘️🌼🌸 download spatialized data?")) {
-              for (let i=0; i<data.length; ++i){
-                data[i]._x = data[i].x;
-                data[i]._y = data[i].y;
-                delete data[i].index;
-                delete data[i].vx;
-                delete data[i].vy;
-                delete data[i].x;
-                delete data[i].y;
-              }
-              var blob = new Blob([JSON.stringify(data)], {type: "application/json;charset=utf-8"});
-              FileSaver.saveAs(blob, "covi-z.json");
+            // if (window.confirm("🌺🌿☘️🌼🌸 download spatialized data?")) {
+              
+            // }
+
+            for (let i=0; i<data.length; ++i){
+              data[i]._x = data[i].x;
+              data[i]._y = data[i].y;
+              delete data[i].index;
+              delete data[i].vx;
+              delete data[i].vy;
+              delete data[i].x;
+              delete data[i].y;
             }
+            var blob = new Blob([JSON.stringify(data)], {type: "application/json;charset=utf-8"});
+            FileSaver.saveAs(blob, "covi-z.json");
 
           })
           .restart();
