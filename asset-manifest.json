@@ -1,22 +1,22 @@
 {
   "files": {
     "main.css": "/covi-z/static/css/main.0d3a0996.chunk.css",
-    "main.js": "/covi-z/static/js/main.540d22da.chunk.js",
-    "main.js.map": "/covi-z/static/js/main.540d22da.chunk.js.map",
+    "main.js": "/covi-z/static/js/main.6c6ed8b0.chunk.js",
+    "main.js.map": "/covi-z/static/js/main.6c6ed8b0.chunk.js.map",
     "runtime-main.js": "/covi-z/static/js/runtime-main.9f390165.js",
     "runtime-main.js.map": "/covi-z/static/js/runtime-main.9f390165.js.map",
-    "static/js/2.dc08fe0f.chunk.js": "/covi-z/static/js/2.dc08fe0f.chunk.js",
-    "static/js/2.dc08fe0f.chunk.js.map": "/covi-z/static/js/2.dc08fe0f.chunk.js.map",
+    "static/js/2.51d542c6.chunk.js": "/covi-z/static/js/2.51d542c6.chunk.js",
+    "static/js/2.51d542c6.chunk.js.map": "/covi-z/static/js/2.51d542c6.chunk.js.map",
     "index.html": "/covi-z/index.html",
-    "precache-manifest.a408b8f87a9547068ab8fb43ec19d8d8.js": "/covi-z/precache-manifest.a408b8f87a9547068ab8fb43ec19d8d8.js",
+    "precache-manifest.9fa3f35279ab5d793ebc92187ba32ee8.js": "/covi-z/precache-manifest.9fa3f35279ab5d793ebc92187ba32ee8.js",
     "service-worker.js": "/covi-z/service-worker.js",
     "static/css/main.0d3a0996.chunk.css.map": "/covi-z/static/css/main.0d3a0996.chunk.css.map",
-    "static/js/2.dc08fe0f.chunk.js.LICENSE.txt": "/covi-z/static/js/2.dc08fe0f.chunk.js.LICENSE.txt"
+    "static/js/2.51d542c6.chunk.js.LICENSE.txt": "/covi-z/static/js/2.51d542c6.chunk.js.LICENSE.txt"
   },
   "entrypoints": [
     "static/js/runtime-main.9f390165.js",
-    "static/js/2.dc08fe0f.chunk.js",
+    "static/js/2.51d542c6.chunk.js",
     "static/css/main.0d3a0996.chunk.css",
-    "static/js/main.540d22da.chunk.js"
+    "static/js/main.6c6ed8b0.chunk.js"
   ]
 }
