@@ -92,7 +92,7 @@ class Test extends Component {
           // })
           .force("x", d3.forceX(d=>d._x))
           .force("y", d3.forceY(d=>d._y))
-          .force("charge", d3.forceManyBody().strength(-0.09))
+          .force("charge", d3.forceManyBody().strength(-0.05))
           .alphaDecay(alphaDecay)
           .alpha(1)
           .on("end", () => {

@@ -9,12 +9,6 @@ function App() {
   return (
     <div className="App">
       <HashRouter basename="/">
-        <Route path="/svg">
-          <Test />
-        </Route>
-        <Route path="/pixi">
-          <PixiViz />
-        </Route>
         <Route exact path="/">
           {
             <nav>
@@ -29,6 +23,15 @@ function App() {
             </nav>
           }
         </Route>
+        <Route path="/svg">
+          <Test />
+        </Route>
+        <Route path="/pixi">
+          <PixiViz />
+        </Route>
+        <Route path="*">
+            <h1>404</h1>
+          </Route>
       </HashRouter>
     </div>
   );
