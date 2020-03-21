@@ -4,6 +4,7 @@ import './App.css';
 
 import Test from './Test';
 import PixiViz from './PixiViz';
+import VizView from './VizView';
 
 function App() {
   return (
@@ -19,6 +20,9 @@ function App() {
                 <li>
                   <Link to="/pixi">PIXIjs version</Link>
                 </li>
+                <li>
+                  <Link to="/viz">Visualization</Link>
+                </li>
               </ul>
             </nav>
           }
@@ -28,6 +32,9 @@ function App() {
         </Route>
         <Route path="/pixi">
           <PixiViz />
+        </Route>
+        <Route path="/viz">
+          <VizView />
         </Route>
       </HashRouter>
     </div>
