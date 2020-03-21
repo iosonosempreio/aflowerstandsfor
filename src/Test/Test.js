@@ -10,8 +10,7 @@ const size = Utilities.emoji.size/Utilities.clampZoomOptions.maxScale;
 
 let nodes = [], categories = JSON.parse(JSON.stringify(Utilities.categories)),
     node,
-    projection,
-    simulationIsRunning = true;
+    projection;
 
 class Test extends Component {
   constructor(props){
@@ -110,7 +109,7 @@ class Test extends Component {
           .force("x", d3.forceX(d=>d._x))
           .force("y", d3.forceY(d=>d._y))
           .force("charge", d3.forceManyBody().strength(-0.05))
-          .alphaDecay(0.9)
+          .alphaDecay(0.01)
           .alphaMin(0.1)
 
           let dates = Object.keys(this.state.data);
@@ -263,7 +262,7 @@ function downloadSpatializedData(data) {
     delete data[i].y;
   }
   var blob = new Blob([JSON.stringify(data)], {type: "application/json;charset=utf-8"});
-  FileSaver.saveAs(blob, "covi-z 2020-02-24 18:00:00.json");
+  FileSaver.saveAs(blob, "covi-z-storico.json");
 }
 
 // spatialization()
