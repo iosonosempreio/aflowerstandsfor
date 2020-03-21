@@ -2,25 +2,22 @@ import React, { Component } from 'react';
 import * as d3 from "d3";
 import * as PIXI from "pixi.js";
 import { Viewport } from "pixi-viewport";
-import html2canvas from 'html2canvas';
 
 import Utilities from '../Utilities/Utilities';
 
 let pixiApp, viewport, container,
     width = window.innerWidth,
     height = window.innerHeight,
-    dpr = window.devicePixelRatio || 1,
-    projection;
-
-// graphics, emojiCounter = 0,
-    
-//     size = Utilities.emoji.size,
-//     ;
+    dpr = window.devicePixelRatio || 1;
 
 class PixiViz extends Component {
   constructor(props) {
     super(props);
     this.updateSprites=this.updateSprites.bind(this);
+    this.bands=this.bands.bind(this);
+    this.bunches=this.bunches.bind(this);
+    this.clusters=this.clusters.bind(this);
+    this.calculatePositionsBands=this.calculatePositionsBands.bind(this);
   }
   _setRef(componentNode) {
     this._rootNode = componentNode;
@@ -39,8 +36,10 @@ class PixiViz extends Component {
       // center the sprite's anchor point
       sprite.anchor.set(0.5);
       // move the sprite to the center of the screen
-      sprite.x = to_add[i]._x;
-      sprite.y = to_add[i]._y;
+      // sprite.x = to_add[i]._x;
+      // sprite.y = to_add[i]._y;
+      sprite.x = window.innerWidth/2;
+      sprite.y = window.innerHeight/2;
       sprite.scale.x = 1/dpr/Utilities.clampZoomOptions.maxScale;
       sprite.scale.y = 1/dpr/Utilities.clampZoomOptions.maxScale;
       container.addChild(sprite);
@@ -54,17 +53,61 @@ class PixiViz extends Component {
       console.warn('Problem in sprites update');
       console.warn('total data:',this.props.data.length)
       console.warn('total sprites:',container.children.length)
+    } else {
+      this.repositionSprites();
     }
-
   }
   repositionSprites(){
     switch (this.props.model) {
       case 'bands':
+        this.bands();
         break;
       case 'bunches':
+        this.bunches();
         break;
       case 'clusters':
+        this.clusters();
         break;
+      default:
+        console.warn('no matching model');
+        break;
+    }
+  }
+  calculatePositionsBands(){
+    const nestedData = d3.nest()
+      .key(d=>d.category)
+      .entries(this.props.data);
+    let center = {x:0,y:height/2};
+    Utilities.categories.forEach(cat=>{
+      const band_data = nestedData.find(d=>d.key===cat).values;
+      const percentage = band_data.length/this.props.data.length;
+      const band_width = width*percentage
+      center.x += band_width;
+      band_data.forEach(d=>{
+        d.bands_x = center.x// + d3.randomUniform(-band_width,0)();
+        d.bands_y = center.y + d3.randomUniform(-height/2,height/2)();
+      })
+    })
+  }
+  bands(){
+    console.log('position in bands');
+    for(let i=0; i<container.children.length; ++i){
+      container.children[i].x = container.children[i]._data_.bands_x;
+      container.children[i].y = container.children[i]._data_.bands_y;
+    }
+  }
+  bunches(){
+    console.log('position in bunches')
+    for(let i=0; i<container.children.length; ++i){
+      container.children[i].x = container.children[i]._data_.x;
+      container.children[i].y = container.children[i]._data_.y;
+    }
+  }
+  clusters(){
+    console.log('position in clusters');
+    for(let i=0; i<container.children.length; ++i){
+      container.children[i].x = container.children[i]._data_.y;
+      container.children[i].y = container.children[i]._data_.x;
     }
   }
   componentDidMount() {
@@ -97,12 +140,15 @@ class PixiViz extends Component {
 
     container = new PIXI.Container();
     viewport.addChild(container);
-
+    this.calculatePositionsBands();
     this.updateSprites();
   }
   componentDidUpdate(prevProps){
     if (prevProps.data !== this.props.data) {
+      this.calculatePositionsBands();
       this.updateSprites();
+    } else if (prevProps.model !== this.props.model) {
+      this.repositionSprites();
     }
   }
   render() {
