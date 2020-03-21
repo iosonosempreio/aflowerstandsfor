@@ -6,15 +6,15 @@ Utilities.emoji = {
 
 Utilities.clampZoomOptions = {
     minScale:0.5,
-    maxScale:10
+    maxScale:15
 }
 
 Utilities.emoji_dictionary = {
     "dimessi_guariti": '🍀',
-    "isolamento_domiciliare": '🏠',
+    "isolamento_domiciliare": '⚪️',
     "ricoverati_con_sintomi": '🌼',
     "terapia_intensiva": '🌸',
-    "deceduti": '🌷'
+    "deceduti": '🌺'
 };
 
 Utilities.emoji_images_dictionary = {
@@ -26,20 +26,21 @@ Utilities.emoji_images_dictionary = {
 };
 
 Utilities.categories = [
-    "ricoverati_con_sintomi",
+    "deceduti",
     "terapia_intensiva",
-    // "totale_ospedalizzati",
+    "ricoverati_con_sintomi",
     "isolamento_domiciliare",
+    "dimessi_guariti",
+    // "totale_ospedalizzati",
     // "totale_attualmente_positivi",
     // "nuovi_attualmente_positivi",
-    "dimessi_guariti",
-    "deceduti",
     // "tamponi"
   ]
 
 Utilities.map = {
     width: 768,
-    height:1024
+    height:1024,
+    scale:8000
 }
 
 export default Utilities;

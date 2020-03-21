@@ -69,7 +69,7 @@ class PixiViz extends Component {
       projection = d3.geoConicEqualArea()
         .fitSize([Utilities.map.width-50, Utilities.map.height-50], this._rootNode)
         .translate([Utilities.map.width / 2, Utilities.map.height / 2])
-        .scale(3000)
+        .scale(Utilities.map.scale)
         .center([12.368775000000001, 42.9451139]);
   
   
