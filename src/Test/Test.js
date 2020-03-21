@@ -104,7 +104,7 @@ class Test extends Component {
           .tick(1000)
           .on("tick", ()=>{
             document.title = simulation.alpha();
-            node.attr('x',d=>d.x).attr('y',d=>d.y);
+            // node.attr('x',d=>d.x).attr('y',d=>d.y);
           })
           .force("x", d3.forceX(d=>d._x))
           .force("y", d3.forceY(d=>d._y))
@@ -113,6 +113,8 @@ class Test extends Component {
           .alphaMin(0.1)
 
           let dates = Object.keys(this.state.data);
+
+          dates = dates.slice(15,16);
           
           const runAllDates = ()=>{
             let date = dates.shift();
@@ -214,20 +216,20 @@ const addNodes = (nodes, data, category)=>{
 }
 
 const updateForceLayout = () => {
-  node = node.data(nodes, d=>d.id)
-  node.exit().remove();
+  // node = node.data(nodes, d=>d.id)
+  // node.exit().remove();
 
-  node = node.enter().append('text')
-    .classed('node', true)
-    .attr('font-size',size+'px')
-    .text(d=>Utilities.emoji_dictionary[d.category])
-    .attr('x',d=>d.x)
-    .attr('y',d=>d.y)
-    .call(d3.drag()
-          .on("start", dragstarted)
-          .on("drag", dragged)
-          .on("end", dragended))
-    .merge(node);
+  // node = node.enter().append('text')
+  //   .classed('node', true)
+  //   .attr('font-size',size+'px')
+  //   .text(d=>Utilities.emoji_dictionary[d.category])
+  //   .attr('x',d=>d.x)
+  //   .attr('y',d=>d.y)
+  //   .call(d3.drag()
+  //         .on("start", dragstarted)
+  //         .on("drag", dragged)
+  //         .on("end", dragended))
+  //   .merge(node);
 
   simulation.nodes(nodes)
     .alpha(1)
@@ -252,15 +254,15 @@ function dragended(d) {
 }
 
 function downloadSpatializedData(data) {
-  for (let i=0; i<data.length; ++i){
-    data[i]._x = data[i].x;
-    data[i]._y = data[i].y;
-    delete data[i].index;
-    delete data[i].vx;
-    delete data[i].vy;
-    delete data[i].x;
-    delete data[i].y;
-  }
+  // for (let i=0; i<data.length; ++i){
+  //   data[i]._x = data[i].x;
+  //   data[i]._y = data[i].y;
+  //   delete data[i].index;
+  //   delete data[i].vx;
+  //   delete data[i].vy;
+  //   delete data[i].x;
+  //   delete data[i].y;
+  // }
   var blob = new Blob([JSON.stringify(data)], {type: "application/json;charset=utf-8"});
   FileSaver.saveAs(blob, "covi-z-storico.json");
 }
