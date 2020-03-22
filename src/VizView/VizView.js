@@ -14,7 +14,11 @@ class VizView extends Component {
     this._rootNode = componentNode;
   }
   changeDate(index){
-    if (index<0||index>this.state.dates.length-1) return;
+    if (index<0) {
+      index = this.state.dates.length-1
+    } else if (index>this.state.dates.length-1) {
+      index = 0
+    }
     const newDate = this.state.dates[index];
     this.setState({current_date:newDate, current_date_index:index, data_day:this.state.data[newDate]});
   }
@@ -27,7 +31,7 @@ class VizView extends Component {
     // load data
     const data = await d3.json('./data/covi-z-storico.json');
     const dates = Object.keys(data);
-    const index = dates.length-1;
+    const index = 0;//dates.length-1;
     const data_day = data[dates[index]];
     await this.setState({data:data, dates:dates, current_date:dates[index], current_date_index:index, data_day:data_day, model:'bands'});
   }

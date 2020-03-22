@@ -19,78 +19,66 @@ class PixiViz extends Component {
   constructor(props) {
     super(props);
     this.updateSprites=this.updateSprites.bind(this);
-    this.calculatePositionsBands=this.calculatePositionsBands.bind(this);
   }
   _setRef(componentNode) {
     this._rootNode = componentNode;
   }
-  calculatePositionsBands(){
-    let sprites = container.children.filter(c=>c.isSprite)
-    let center = {x:0,y:height/2};
-    Utilities.categories.forEach(cat=>{
-      let band_data = sprites.filter(s=>s._data_.category===cat)
-      const percentage = band_data.length/this.props.data.length;
-      const band_width = width*percentage;
-      center.x += band_width;
-      band_data.forEach(sprite=>{
-        sprite._data_.bands_x = center.x + d3.randomUniform(-band_width,0)();
-        sprite._data_.bands_y = center.y + d3.randomUniform(-height/2,height/2)();
-      })
-    });
-    this.repositionSprites();
-  }
+
   updateSprites(){
     const existing_ids = container.children.map(d=>d._data_.id);
     const incoming_ids = this.props.data.map(d=>d.id);
 
     let to_add = this.props.data.filter(d=>existing_ids.indexOf(d.id)===-1);
+    let to_update = this.props.data.filter(d=>existing_ids.indexOf(d.id)!==-1);
     let to_remove = container.children.filter(d=>incoming_ids.indexOf(d._data_.id)===-1);
 
     console.log(this.props.data.length, to_add.length, to_remove.length);
     
     for (let i=0; i<to_add.length; ++i) {
+      to_add[i].x = d3.randomUniform(width*0.25,width*0.75);
+      to_add[i].y = d3.randomUniform(height*0.25,height*0.75);
+      
       // create a new Sprite from an image path
       const sprite = PIXI.Sprite.from(textures[to_add[i].category]);
-      sprite._data_ = to_add[i];
       // center the sprite's anchor point
       sprite.anchor.set(0.5);
       // move the sprite to the center of the screen
-      // sprite.x = width/2;
-      // sprite.y = height/2;
       // sprite.scale.x = 1/dpr/Utilities.clampZoomOptions.maxScale;
       // sprite.scale.y = 1/dpr/Utilities.clampZoomOptions.maxScale;
       sprite.scale.x = 0.35;
       sprite.scale.y = 0.35;
-
-      to_add[i].x = d3.randomUniform(width*0.25,width*0.75);
-      to_add[i].y = d3.randomUniform(height*0.25,height*0.75);
-
-      if (!to_add[i].bunches_x) {
-        to_add[i].bunches_x = to_add[i]._x;
-        to_add[i].bunches_y = to_add[i]._y;
-        to_add[i].clusters_x = to_add[i]._y;
-        to_add[i].clusters_y = to_add[i]._x;
-      }
+      sprite._data_ = to_add[i];
       container.addChild(sprite);
+    }
+    
+    for (let i=0; i<to_update.length; ++i) {
+      const index = existing_ids.indexOf(to_update[i].id);
+      const sprite = container.children[index];
+      sprite._data_ = to_update[i];
     }
 
     for (let i=0; i<to_remove.length; ++i) {
       container.removeChild(to_remove[i]);
     }
+
     if (this.props.data.length!==container.children.length) {
       console.warn('Problem in sprites update');
       console.warn('total data:',this.props.data.length)
       console.warn('total sprites:',container.children.length)
     }
-
-    this.calculatePositionsBands();
+    this.repositionSprites();
   }
   repositionSprites(){
     // models could be bands, bunches, clusters
     let simulation_is_running = true;
     simulation.nodes(this.props.data);
-    simulation.force('x').x(d=>d[`${this.props.model}_x`]);
-    simulation.force('y').y(d=>d[`${this.props.model}_y`]);
+    if (this.props.model === 'bands') {
+      simulation.force('x').x(d=>d[`${this.props.model}_x`]*width);
+      simulation.force('y').y(d=>d[`${this.props.model}_y`]*height);
+    } else {
+      simulation.force('x').x(d=>d[`${this.props.model}_x`]);
+      simulation.force('y').y(d=>d[`${this.props.model}_y`]);
+    }
     simulation.on("end", () => {
       console.log('simulation ended for', this.props.model);
       simulation_is_running = false;
