@@ -5,7 +5,7 @@ import { Viewport } from "pixi-viewport";
 
 import Utilities from '../Utilities/Utilities';
 
-let pixiApp, viewport, container,
+let pixiApp, viewport, container, textures = {},
     width = window.innerWidth,
     height = window.innerHeight,
     dpr = window.devicePixelRatio || 1;
@@ -22,26 +22,42 @@ class PixiViz extends Component {
   _setRef(componentNode) {
     this._rootNode = componentNode;
   }
+  calculatePositionsBands(){
+    let sprites = container.children.filter(c=>c.isSprite)
+    let center = {x:0,y:height/2};
+    Utilities.categories.forEach(cat=>{
+      let band_data = sprites.filter(s=>s._data_.category===cat)
+      const percentage = band_data.length/this.props.data.length;
+      const band_width = width*percentage;
+      center.x += band_width;
+      band_data.forEach(sprite=>{
+        sprite._data_.bands_x = center.x + d3.randomUniform(-band_width,0)();
+        sprite._data_.bands_y = center.y + d3.randomUniform(-height/2,height/2)();
+      })
+    });
+  }
   updateSprites(){
     const existing_ids = container.children.map(d=>d._data_.id);
     const incoming_ids = this.props.data.map(d=>d.id);
 
-    const to_add = this.props.data.filter(d=>existing_ids.indexOf(d.id)===-1);
-    const to_remove = container.children.filter(d=>incoming_ids.indexOf(d._data_.id)===-1);
+    let to_add = this.props.data.filter(d=>existing_ids.indexOf(d.id)===-1);
+    let to_remove = container.children.filter(d=>incoming_ids.indexOf(d._data_.id)===-1);
+
+    console.log(this.props.data.length, to_add.length, to_remove.length);
     
     for (let i=0; i<to_add.length; ++i) {
       // create a new Sprite from an image path
-      const sprite = PIXI.Sprite.from(`./${to_add[i].category}.png`);
+      const sprite = PIXI.Sprite.from(textures[to_add[i].category]);
       sprite._data_ = to_add[i];
       // center the sprite's anchor point
       sprite.anchor.set(0.5);
       // move the sprite to the center of the screen
-      // sprite.x = to_add[i]._x;
-      // sprite.y = to_add[i]._y;
       sprite.x = window.innerWidth/2;
       sprite.y = window.innerHeight/2;
-      sprite.scale.x = 1/dpr/Utilities.clampZoomOptions.maxScale;
-      sprite.scale.y = 1/dpr/Utilities.clampZoomOptions.maxScale;
+      // sprite.scale.x = 1/dpr/Utilities.clampZoomOptions.maxScale;
+      // sprite.scale.y = 1/dpr/Utilities.clampZoomOptions.maxScale;
+      sprite.scale.x = 0.5;
+      sprite.scale.y = 0.5;
       container.addChild(sprite);
     }
 
@@ -54,6 +70,7 @@ class PixiViz extends Component {
       console.warn('total data:',this.props.data.length)
       console.warn('total sprites:',container.children.length)
     } else {
+      this.calculatePositionsBands();
       this.repositionSprites();
     }
   }
@@ -73,25 +90,9 @@ class PixiViz extends Component {
         break;
     }
   }
-  calculatePositionsBands(){
-    const nestedData = d3.nest()
-      .key(d=>d.category)
-      .entries(this.props.data);
-    let center = {x:0,y:height/2};
-    Utilities.categories.forEach(cat=>{
-      const band_data = nestedData.find(d=>d.key===cat).values;
-      const percentage = band_data.length/this.props.data.length;
-      const band_width = width*percentage
-      center.x += band_width;
-      band_data.forEach(d=>{
-        d.bands_x = center.x// + d3.randomUniform(-band_width,0)();
-        d.bands_y = center.y + d3.randomUniform(-height/2,height/2)();
-      })
-    })
-  }
   bands(){
     console.log('position in bands');
-    for(let i=0; i<container.children.length; ++i){
+    for(let i=0; i<container.children.length; i++){
       container.children[i].x = container.children[i]._data_.bands_x;
       container.children[i].y = container.children[i]._data_.bands_y;
     }
@@ -99,15 +100,15 @@ class PixiViz extends Component {
   bunches(){
     console.log('position in bunches')
     for(let i=0; i<container.children.length; ++i){
-      container.children[i].x = container.children[i]._data_.x;
-      container.children[i].y = container.children[i]._data_.y;
+      container.children[i].x = container.children[i]._data_._x;
+      container.children[i].y = container.children[i]._data_._y;
     }
   }
   clusters(){
     console.log('position in clusters');
     for(let i=0; i<container.children.length; ++i){
-      container.children[i].x = container.children[i]._data_.y;
-      container.children[i].y = container.children[i]._data_.x;
+      container.children[i].x = container.children[i]._data_._y;
+      container.children[i].y = container.children[i]._data_._x;
     }
   }
   componentDidMount() {
@@ -140,12 +141,16 @@ class PixiViz extends Component {
 
     container = new PIXI.Container();
     viewport.addChild(container);
-    this.calculatePositionsBands();
+
+    Utilities.categories.forEach(category=>{
+      const texture = PIXI.Texture.from(`./${category}.png`);
+      textures[category] = texture;
+    })
+
     this.updateSprites();
   }
   componentDidUpdate(prevProps){
     if (prevProps.data !== this.props.data) {
-      this.calculatePositionsBands();
       this.updateSprites();
     } else if (prevProps.model !== this.props.model) {
       this.repositionSprites();
