@@ -72,7 +72,7 @@ request.get(data_url, function (error, response, body) {
             .key(d=>d.data)
             .entries(data);
         let data_to_export = {};
-        const dates = dataByDates.map(d=>d.key)//.slice(10,20);
+        const dates = dataByDates.map(d=>d.key)//.slice(14,16);
         dates.forEach(this_date=>{
             data_to_export[this_date] = [];
             const data_day = data.filter(d=>d.data === this_date);
@@ -85,8 +85,8 @@ request.get(data_url, function (error, response, body) {
                           'category': c,
                           'denominazione_regione': region.denominazione_regione,
                           'date': region.data.split(' ')[0],
-                          '_x': point[1],
-                          '_y': point[0]
+                          '_x': point[0],
+                          '_y': point[1]
                         }
                         data_to_export[this_date].push(obj);
                       }
