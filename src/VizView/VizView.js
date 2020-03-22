@@ -31,16 +31,16 @@ class VizView extends Component {
     // load data
     const data = await d3.json('./data/covi-z-storico.json');
     const dates = Object.keys(data);
-    const index = 0;//dates.length-1;
+    const index = dates.length-1;
     const data_day = data[dates[index]];
-    await this.setState({data:data, dates:dates, current_date:dates[index], current_date_index:index, data_day:data_day, model:'bands'});
+    await this.setState({data:data, dates:dates, current_date:dates[index], current_date_index:index, data_day:data_day, model:'stripes'});
   }
   render() {
     return  <div ref={this._setRef.bind(this)}>
               <p>
                 <input type="button" name="prev-date" value="⏪" onClick={ ()=>this.changeDate(this.state.current_date_index-1) } />
                 <input type="button" name="prev-date" value="⏩" onClick={ ()=>this.changeDate(this.state.current_date_index+1) } />
-                <input type="button" name="bands" value="🖼" onClick={ ()=>this.changeModel('bands') } />
+                <input type="button" name="bands" value="🖼" onClick={ ()=>this.changeModel('stripes') } />
                 <input type="button" name="bunch" value="💐" onClick={ ()=>this.changeModel('bunches') } />
                 <input type="button" name="clusters" value="🎯" onClick={ ()=>this.changeModel('clusters') } />
               </p>

@@ -25,6 +25,7 @@ Utilities.emoji_images_dictionary = {
     "deceduti": 'https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/144/whatsapp/238/hibiscus_1f33a.png'
 };
 
+// categories names cant start with same 4 beginning letters so that substring(0,4) returns all different values
 Utilities.categories = [
     "deceduti",
     "terapia_intensiva",

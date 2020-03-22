@@ -30,14 +30,12 @@ class PixiViz extends Component {
 
     let to_add = this.props.data.filter(d=>existing_ids.indexOf(d.id)===-1);
     let to_update = this.props.data.filter(d=>existing_ids.indexOf(d.id)!==-1);
+    
     let to_remove = container.children.filter(d=>incoming_ids.indexOf(d._data_.id)===-1);
 
     console.log(this.props.data.length, to_add.length, to_remove.length);
     
     for (let i=0; i<to_add.length; ++i) {
-      to_add[i].x = d3.randomUniform(width*0.25,width*0.75);
-      to_add[i].y = d3.randomUniform(height*0.25,height*0.75);
-      
       // create a new Sprite from an image path
       const sprite = PIXI.Sprite.from(textures[to_add[i].category]);
       // center the sprite's anchor point
@@ -48,6 +46,8 @@ class PixiViz extends Component {
       sprite.scale.x = 0.35;
       sprite.scale.y = 0.35;
       sprite._data_ = to_add[i];
+      sprite.interactive = true;
+      sprite.on('mousedown', ()=>console.log(sprite));
       container.addChild(sprite);
     }
     
@@ -69,15 +69,15 @@ class PixiViz extends Component {
     this.repositionSprites();
   }
   repositionSprites(){
-    // models could be bands, bunches, clusters
+    // models could be stripes, bunches, clusters
     let simulation_is_running = true;
     simulation.nodes(this.props.data);
-    if (this.props.model === 'bands') {
-      simulation.force('x').x(d=>d[`${this.props.model}_x`]*width);
-      simulation.force('y').y(d=>d[`${this.props.model}_y`]*height);
+    if (this.props.model === 'stripes') {
+      simulation.force('x').x(d=>d[`${this.props.model.charAt(0)}_x`]*width);
+      simulation.force('y').y(d=>d[`${this.props.model.charAt(0)}_y`]*height);
     } else {
-      simulation.force('x').x(d=>d[`${this.props.model}_x`]);
-      simulation.force('y').y(d=>d[`${this.props.model}_y`]);
+      simulation.force('x').x(d=>d[`${this.props.model.charAt(0)}_x`]);
+      simulation.force('y').y(d=>d[`${this.props.model.charAt(0)}_y`]);
     }
     simulation.on("end", () => {
       console.log('simulation ended for', this.props.model);
