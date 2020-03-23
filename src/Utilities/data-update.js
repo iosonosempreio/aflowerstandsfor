@@ -1,9 +1,13 @@
 const fs = require('fs');
 const request = require('request');
 const d3 = require('d3');
-let data_url = 'https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-regioni/dpc-covid19-ita-regioni.csv';
+const { Parser } = require('json2csv');
 
+let data_url = 'https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-regioni/dpc-covid19-ita-regioni.csv';
+// uncomment this for pulling local version of official dataset
 data_url = 'http://localhost:3000/data/dpc-covid19-ita-regioni.csv';
+
+const daily_datasets_path = `public/data/daily_datasets.csv`;
 
 const Utilities = {
     map: {
@@ -83,16 +87,35 @@ request.get(data_url, function (error, response, body) {
             .key(d=>d.data)
             .entries(data);
         let data_to_export = {};
-        const dates = dataByDates.map(d=>d.key)
-            // .slice(6,7)
-            // .slice(27,28);
+
+        let dates = dataByDates.map(d=>d.key);
+
+        let args = process.argv;
+        if (args.length > 2) {
+            if (args[2]==='only-latest') {
+                try {
+                    if (!fs.existsSync(daily_datasets_path)) {
+                        const data_list = 'date,file_name\n';
+                        fs.writeFileSync(`public/data/daily_datasets.csv`, data_list);
+                    }
+                } catch(err) {
+                    console.error(err)
+                }
+                dates = dates.slice(dates.length-1, dates.length);
+            }
+        } else {
+            const data_list = 'date,file_name\n';
+            fs.writeFileSync(`public/data/daily_datasets.csv`, data_list);    
+        }
+
+        console.log('\nspatialise for the following dates:')
+        console.log(dates);
+
         dates.forEach(this_date=>{
             data_to_export[this_date] = [];
             let data_day = data.filter(d=>d.data === this_date);
-
             const bolzano = data_day.find(d=>d.denominazione_regione==='P.A. Bolzano');
             const trento = data_day.find(d=>d.denominazione_regione==='P.A. Trento');
-
             const trentino = {
                 data: bolzano.data,
                 stato: bolzano.stato,
@@ -111,10 +134,8 @@ request.get(data_url, function (error, response, body) {
                 totale_casi: (bolzano.totale_casi+trento.totale_casi),
                 tamponi: (bolzano.tamponi+trento.tamponi)
             }
-
             data_day.splice(data_day.indexOf(bolzano),1);
             data_day.splice(data_day.indexOf(trento),1, trentino);
-
             data_day.forEach((region,i)=>{
                 categories.forEach(c=>{
                     for (let ii=0; ii<region[c]; ii++){
@@ -179,12 +200,27 @@ request.get(data_url, function (error, response, body) {
                     process.stdout.write('simulation ended\n');
 
                     adjust_coordinates();
+                    
+                    const new_dataset = `${dates[index]},${dates[index].replace(/:/g,'-')}.csv\n`
+                    fs.appendFileSync(daily_datasets_path, new_dataset);
+
+                    const fields = Object.keys(nodes[0]);
+                    const opts = { fields };
+
+                    try {
+                        const parser = new Parser(opts);
+                        const csv = parser.parse(nodes);
+                        fs.writeFileSync(`public/data/${dates[index].replace(/:/g,'-')}.csv`, csv);
+                    } catch (err) {
+                        console.error(err);
+                    }
+
                     counter++;
                     if (counter<dates.length){
                         runSimulation(counter);
-                        // fs.writeFileSync('public/data/covi-z-storico.json', JSON.stringify(data_to_export));
                     } else {
-                        fs.writeFileSync('public/data/covi-z-storico.json', JSON.stringify(data_to_export)); 
+                        console.log('all calculated')
+                        // fs.writeFileSync('public/data/covi-z-storico.json', JSON.stringify(data_to_export)); 
                     }
                 });
         }

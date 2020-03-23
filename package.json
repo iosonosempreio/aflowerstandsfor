@@ -23,7 +23,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "data-update": "node ./src/Utilities/data-update.js"
+    "data-update": "node ./src/Utilities/data-update.js only-latest"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -43,6 +43,6 @@
   "devDependencies": {
     "file-saver": "^2.0.2",
     "gh-pages": "^2.2.0",
-    "jetty": "^0.2.1"
+    "json2csv": "^5.0.0"
   }
 }
