@@ -23,7 +23,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "data-update": "node ./src/Utilities/data-update.js only-latest"
+    "data-update": "node ./src/Utilities/data-update.js date=latest dataset=remote"
   },
   "eslintConfig": {
     "extends": "react-app"

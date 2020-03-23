@@ -3,11 +3,33 @@ const request = require('request');
 const d3 = require('d3');
 const { Parser } = require('json2csv');
 
-let data_url = 'https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-regioni/dpc-covid19-ita-regioni.csv';
-// uncomment this for pulling local version of official dataset
-data_url = 'http://localhost:3000/data/dpc-covid19-ita-regioni.csv';
+console.log('\nThis scripts create spatialized data for the project.\n');
 
-const daily_datasets_path = `public/data/daily_datasets.csv`;
+let script_arguments = {
+    'dates': 'all',
+    'dataset': 'remote'
+}
+if (process.argv.length > 2) {
+    process.argv.slice(2).forEach(arg=>{
+        arg = arg.split('=');
+        script_arguments[arg[0]] = arg[1].toString();
+    });
+}
+
+console.log('script arguments:', script_arguments);
+
+let data_url;
+if (script_arguments.dataset==='local') {
+    data_url = 'http://localhost:3000/data/dpc-covid19-ita-regioni.csv';
+} else if (script_arguments.dataset==='remote') {
+    data_url = 'https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-regioni/dpc-covid19-ita-regioni.csv';
+} else {
+    console.log('Unrecognized "dataset" argument:', script_arguments.dataset);
+    console.log('Should be either: "remote" or "local"');
+    return;
+}
+
+const daily_datasets_path = `public/data/list-daily-datasets.csv`;
 
 const Utilities = {
     map: {
@@ -74,7 +96,6 @@ const simulation = d3.forceSimulation()
     // .alphaMin(0.01)
     .stop();
 
-console.log('UPDATING DATA FOR THE PROJECT');
 console.log('Downloading data from:',data_url);
 
 request.get(data_url, function (error, response, body) {
@@ -86,33 +107,35 @@ request.get(data_url, function (error, response, body) {
         const dataByDates = d3.nest()
             .key(d=>d.data)
             .entries(data);
-        let data_to_export = {};
+        let data_to_spatialize = {};
 
         let dates = dataByDates.map(d=>d.key);
 
-        let args = process.argv;
-        if (args.length > 2) {
-            if (args[2]==='only-latest') {
-                try {
-                    if (!fs.existsSync(daily_datasets_path)) {
-                        const data_list = 'date,file_name\n';
-                        fs.writeFileSync(`public/data/daily_datasets.csv`, data_list);
-                    }
-                } catch(err) {
-                    console.error(err)
-                }
-                dates = dates.slice(dates.length-1, dates.length);
+        const header_data_list = 'date,file_name\n';
+        if (script_arguments.dates==='all') {
+            fs.writeFileSync(daily_datasets_path, header_data_list);
+        } else if (script_arguments.dates==='latest') {
+            if (!fs.existsSync(daily_datasets_path)) {
+                fs.writeFileSync(daily_datasets_path, header_data_list);
+                dates = dates.slice(dates.length-1, dates.length);    
             }
+        }  else if (script_arguments.dates.includes('[')) {
+            script_arguments.dates = JSON.parse(script_arguments.dates);
+            console.log('\nYou passed an array of dates.\nThe script will replace existing data with dates from');
+            console.log(dates[script_arguments.dates[0]], 'to', dates[script_arguments.dates[script_arguments.dates.length-1]]);
+            fs.writeFileSync(daily_datasets_path, header_data_list);
+            dates = dates.slice(script_arguments.dates[0], script_arguments.dates[script_arguments.dates.length-1]);
         } else {
-            const data_list = 'date,file_name\n';
-            fs.writeFileSync(`public/data/daily_datasets.csv`, data_list);    
+            console.log('Unrecognized "dates" argument:', script_arguments.dates);
+            console.log('Should be either: "all", "latest" or a 2 elements array (e.g. [3,9])');
+            return;
         }
 
         console.log('\nspatialise for the following dates:')
         console.log(dates);
 
         dates.forEach(this_date=>{
-            data_to_export[this_date] = [];
+            data_to_spatialize[this_date] = [];
             let data_day = data.filter(d=>d.data === this_date);
             const bolzano = data_day.find(d=>d.denominazione_regione==='P.A. Bolzano');
             const trento = data_day.find(d=>d.denominazione_regione==='P.A. Trento');
@@ -148,7 +171,7 @@ request.get(data_url, function (error, response, body) {
                           '_x': point[0],
                           '_y': point[1]
                         }
-                        data_to_export[this_date].push(obj);
+                        data_to_spatialize[this_date].push(obj);
                       }
                 })
             })
@@ -158,7 +181,7 @@ request.get(data_url, function (error, response, body) {
         runSimulation(counter);
         function runSimulation(index) {
             console.log('\nspatializing data from', dates[index]);
-            const nodes = data_to_export[dates[index]],
+            const nodes = data_to_spatialize[dates[index]],
                 width=1,
                 height=1;
             function adjust_coordinates() {
@@ -220,7 +243,7 @@ request.get(data_url, function (error, response, body) {
                         runSimulation(counter);
                     } else {
                         console.log('all calculated')
-                        // fs.writeFileSync('public/data/covi-z-storico.json', JSON.stringify(data_to_export)); 
+                        // fs.writeFileSync('public/data/covi-z-storico.json', JSON.stringify(data_to_spatialize)); 
                     }
                 });
         }
