@@ -122,7 +122,8 @@ class PixiViz extends Component {
     pixiApp = new PIXI.Application({
       width: width,
       height: height,
-      backgroundColor: 0xfafafa,
+      // backgroundColor: 0xf4fff1,
+      backgroundColor: 0xfff3bf,
       resolution: dpr,
       autoResize: true
     });
