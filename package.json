@@ -42,6 +42,7 @@
   },
   "devDependencies": {
     "file-saver": "^2.0.2",
-    "gh-pages": "^2.2.0"
+    "gh-pages": "^2.2.0",
+    "jetty": "^0.2.1"
   }
 }

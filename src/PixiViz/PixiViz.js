@@ -10,6 +10,14 @@ let pixiApp, viewport, container, textures = {},
     height,
     dpr = window.devicePixelRatio || 1;
 
+// const projection = d3.geoConicEqualArea()
+// const projection = d3.geoTransverseMercator()
+const projection = d3.geoNaturalEarth1()
+  // .fitSize([Utilities.map.width-50, Utilities.map.height-50], this._rootNode)
+  .translate([Utilities.map.width / 2, Utilities.map.height / 2])
+  .scale(Utilities.map.scale)
+  .center([12.368775000000001, 42.9451139]);
+
 const simulation = d3.forceSimulation()
   .force("x", d3.forceX(d=>d.x))
   .force("y", d3.forceY(d=>d.y))
@@ -25,12 +33,22 @@ class PixiViz extends Component {
   }
 
   updateSprites(){
-    const existing_ids = container.children.map(d=>d._data_.id);
-    const incoming_ids = this.props.data.map(d=>d.id);
-
-    let to_add = this.props.data.filter(d=>existing_ids.indexOf(d.id)===-1);
-    let to_update = this.props.data.filter(d=>existing_ids.indexOf(d.id)!==-1);
-    
+    let existing_ids=[];
+    for (let i=0; i<container.children.length; ++i){
+      existing_ids.push(container.children[i]);
+    };
+    let incoming_ids=[];
+    let to_add=[];
+    let to_update=[];
+    for (let i=0; i<this.props.data.length; ++i) {
+      const d = this.props.data[i];
+      incoming_ids.push(d.id);
+      if (existing_ids.indexOf(d.id)===-1) {
+        to_add.push(d);
+      } else {
+        to_update.push(d);
+      }
+    }
     let to_remove = container.children.filter(d=>incoming_ids.indexOf(d._data_.id)===-1);
 
     console.log(this.props.data.length, to_add.length, to_remove.length);
@@ -43,11 +61,11 @@ class PixiViz extends Component {
       // move the sprite to the center of the screen
       // sprite.scale.x = 1/dpr/Utilities.clampZoomOptions.maxScale;
       // sprite.scale.y = 1/dpr/Utilities.clampZoomOptions.maxScale;
-      sprite.scale.x = 0.35;
-      sprite.scale.y = 0.35;
+      sprite.scale.x = 1/7;
+      sprite.scale.y = 1/7;
       sprite._data_ = to_add[i];
       sprite.interactive = true;
-      sprite.on('mousedown', ()=>console.log(sprite));
+      sprite.on('mousedown', ()=>console.log(sprite._data_));
       container.addChild(sprite);
     }
     
@@ -92,7 +110,7 @@ class PixiViz extends Component {
         container.children[i].x = container.children[i]._data_.x;
         container.children[i].y = container.children[i]._data_.y;
       }
-      if (simulation_is_running){
+      if (simulation_is_running || simulation.alpha()>0.1){
         requestAnimationFrame(reposition);
       }
     }
@@ -128,11 +146,29 @@ class PixiViz extends Component {
       .wheel()
     pixiApp.stage.addChild(viewport);
 
+    for (let i=0; i<this.props.mapGeometries.features.length; i++) {
+      const region = this.props.mapGeometries.features[i];
+
+      const this_graphics = new PIXI.Graphics();
+
+      const path = d3.geoPath()
+        .projection(projection)
+        .context(this_graphics);
+
+      this_graphics.beginFill(0xffffff, 1);
+      this_graphics.lineStyle(1, 0x333333);
+        path(region);
+      this_graphics.endFill();
+
+      viewport.addChild(this_graphics);
+    }
+
     container = new PIXI.Container();
     viewport.addChild(container);
 
     Utilities.categories.forEach(category=>{
-      const texture = PIXI.Texture.from(`./${category}.png`);
+      // source, frame, orig, trim, rotate
+      const texture = PIXI.Texture.from(`./${category}_40x40.png`);
       textures[category] = texture;
     })
 

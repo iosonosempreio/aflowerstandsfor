@@ -5,7 +5,7 @@ Utilities.emoji = {
 }
 
 Utilities.clampZoomOptions = {
-    minScale:0.5,
+    minScale:0.01,
     maxScale:10
 }
 
@@ -39,9 +39,9 @@ Utilities.categories = [
   ]
 
 Utilities.map = {
-    width: 768,
+    width:768,
     height:1024,
-    scale:8000
+    scale:30000
 }
 
 export default Utilities;

@@ -1,13 +1,18 @@
 const fs = require('fs');
 const request = require('request');
 const d3 = require('d3');
-const data_url = 'https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-regioni/dpc-covid19-ita-regioni.csv';
+let data_url = 'https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-regioni/dpc-covid19-ita-regioni.csv';
+
+data_url = 'http://localhost:3000/data/dpc-covid19-ita-regioni.csv';
 
 const Utilities = {
     map: {
         width:768,
         height:1024,
-        scale:10000
+        scale:30000
+    },
+    emoji: {
+        size:20
     }
 }
 
@@ -44,19 +49,25 @@ const categories = [
     "dimessi_guariti"
   ]
 
-const projection = d3.geoConicEqualArea()
+const projection = d3.geoNaturalEarth1()
     // .fitSize([Utilities.map.width-50, Utilities.map.height-50], this._rootNode)
     .translate([Utilities.map.width / 2, Utilities.map.height / 2])
     .scale(Utilities.map.scale)
     .center([12.368775000000001, 42.9451139]);
 
 const simulation = d3.forceSimulation()
+    .on('tick',()=>{
+        let alpha = 'simulation alpha:' + simulation.alpha().toString();
+        process.stdout.cursorTo(0);
+        process.stdout.clearLine();
+        process.stdout.write(alpha);
+    })
     .force("x", d3.forceX(d=>d._x))
     .force("y", d3.forceY(d=>d._y))
-    // .force("charge", d3.forceManyBody().strength(-30))
-    .force("collision", d3.forceCollide(5))
-    .alphaDecay(0.05)
-    .alphaMin(0.1)
+    .force("charge", d3.forceManyBody().strength(-0.5))
+    .force("collision", d3.forceCollide(Utilities.emoji.size/8))
+    // .alphaDecay(0.01)
+    // .alphaMin(0.01)
     .stop();
 
 console.log('UPDATING DATA FOR THE PROJECT');
@@ -72,10 +83,38 @@ request.get(data_url, function (error, response, body) {
             .key(d=>d.data)
             .entries(data);
         let data_to_export = {};
-        const dates = dataByDates.map(d=>d.key)//.slice(14,16);
+        const dates = dataByDates.map(d=>d.key)
+            // .slice(6,7)
+            // .slice(27,28);
         dates.forEach(this_date=>{
             data_to_export[this_date] = [];
-            const data_day = data.filter(d=>d.data === this_date);
+            let data_day = data.filter(d=>d.data === this_date);
+
+            const bolzano = data_day.find(d=>d.denominazione_regione==='P.A. Bolzano');
+            const trento = data_day.find(d=>d.denominazione_regione==='P.A. Trento');
+
+            const trentino = {
+                data: bolzano.data,
+                stato: bolzano.stato,
+                codice_regione: bolzano.codice_regione,
+                denominazione_regione: 'Trentino-Alto Adige',
+                lat: '46.38',
+                long: '11.42',
+                ricoverati_con_sintomi: (bolzano.ricoverati_con_sintomi+trento.ricoverati_con_sintomi),
+                terapia_intensiva: (bolzano.terapia_intensiva+trento.terapia_intensiva),
+                totale_ospedalizzati: (bolzano.totale_ospedalizzati+trento.totale_ospedalizzati),
+                isolamento_domiciliare: (bolzano.isolamento_domiciliare+trento.isolamento_domiciliare),
+                totale_attualmente_positivi: (bolzano.totale_attualmente_positivi+trento.totale_attualmente_positivi),
+                nuovi_attualmente_positivi: (bolzano.nuovi_attualmente_positivi+trento.nuovi_attualmente_positivi),
+                dimessi_guariti: (bolzano.dimessi_guariti+trento.dimessi_guariti),
+                deceduti: (bolzano.deceduti+trento.deceduti),
+                totale_casi: (bolzano.totale_casi+trento.totale_casi),
+                tamponi: (bolzano.tamponi+trento.tamponi)
+            }
+
+            data_day.splice(data_day.indexOf(bolzano),1);
+            data_day.splice(data_day.indexOf(trento),1, trentino);
+
             data_day.forEach((region,i)=>{
                 categories.forEach(c=>{
                     for (let ii=0; ii<region[c]; ii++){
@@ -96,15 +135,13 @@ request.get(data_url, function (error, response, body) {
 
         let counter = 0;
         runSimulation(counter);
-
         function runSimulation(index) {
+            console.log('\nspatializing data from', dates[index]);
             const nodes = data_to_export[dates[index]],
                 width=1,
                 height=1;
             function adjust_coordinates() {
-
                 let bands_x = 0;
-
                 categories.forEach(category=>{
                     let band_data = nodes.filter(s=>s.category===category);
                     const percentage = band_data.length/nodes.length;
@@ -136,13 +173,18 @@ request.get(data_url, function (error, response, body) {
                 .alpha(1)
                 .restart()
                 .on('end',()=>{
-                    console.log('simulation ended for', dates[index]);
+                    
+                    process.stdout.cursorTo(0);
+                    process.stdout.clearLine();
+                    process.stdout.write('simulation ended\n');
+
                     adjust_coordinates();
                     counter++;
                     if (counter<dates.length){
                         runSimulation(counter);
+                        // fs.writeFileSync('public/data/covi-z-storico.json', JSON.stringify(data_to_export));
                     } else {
-                        fs.writeFileSync('public/data/covi-z-storico.json', JSON.stringify(data_to_export));  
+                        fs.writeFileSync('public/data/covi-z-storico.json', JSON.stringify(data_to_export)); 
                     }
                 });
         }

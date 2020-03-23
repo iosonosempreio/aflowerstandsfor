@@ -29,11 +29,15 @@ class VizView extends Component {
     // init interface and things
     // ...
     // load data
-    const data = await d3.json('./data/covi-z-storico.json');
+    const fetched = await Promise.all([
+          d3.json('./data/covi-z-storico.json'),
+          d3.json('./data/regioni.geojson'),
+        ])
+    const data = fetched[0];
     const dates = Object.keys(data);
-    const index = dates.length-1;
+    const index = 0;
     const data_day = data[dates[index]];
-    await this.setState({data:data, dates:dates, current_date:dates[index], current_date_index:index, data_day:data_day, model:'stripes'});
+    await this.setState({data:data, dates:dates, current_date:dates[index], current_date_index:index, data_day:data_day, model:'bunches', mapGeometries:fetched[1]});
   }
   render() {
     return  <div ref={this._setRef.bind(this)}>
@@ -44,7 +48,7 @@ class VizView extends Component {
                 <input type="button" name="bunch" value="💐" onClick={ ()=>this.changeModel('bunches') } />
                 <input type="button" name="clusters" value="🎯" onClick={ ()=>this.changeModel('clusters') } />
               </p>
-              {this.state.data && <PixiViz data={this.state.data_day} model={this.state.model} />}
+              {this.state.data && <PixiViz data={this.state.data_day.reverse()} model={this.state.model} mapGeometries={this.state.mapGeometries} />}
             </div>;
   }
 }
