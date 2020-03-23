@@ -30,13 +30,27 @@ class VizView extends Component {
     // ...
     // load data
     const fetched = await Promise.all([
-          d3.json('./data/covi-z-storico.json'),
+          d3.csv('./data/list-daily-datasets.csv'),
           d3.json('./data/regioni.geojson'),
         ])
-    const data = fetched[0];
-    const dates = Object.keys(data);
+        
+    const dates = fetched[0].map(d=>d.date);
+
+    let data = {};
+
+    const dailyDatasets = await Promise.all(fetched[0].map(d=>d3.csv('./data/'+d.file_name)))
+    for (let i=0; i<dates.length; i++) {
+      for (let ii=0; ii<dailyDatasets[i].length; ii++){
+        const elm = dailyDatasets[i][ii];
+        elm.x=elm._x=Number(elm._x);
+        elm.y=elm._y=Number(elm._y);
+      }
+      data[dates[i]] = dailyDatasets[i];
+    }
+    
     const index = 0;
     const data_day = data[dates[index]];
+
     await this.setState({data:data, dates:dates, current_date:dates[index], current_date_index:index, data_day:data_day, model:'bunches', mapGeometries:fetched[1]});
   }
   render() {

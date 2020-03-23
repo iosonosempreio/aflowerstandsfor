@@ -31,11 +31,11 @@ class PixiViz extends Component {
   _setRef(componentNode) {
     this._rootNode = componentNode;
   }
-
   updateSprites(){
+
     let existing_ids=[];
     for (let i=0; i<container.children.length; ++i){
-      existing_ids.push(container.children[i]);
+      existing_ids.push(container.children[i]._data_.id);
     };
     let incoming_ids=[];
     let to_add=[];
@@ -49,9 +49,17 @@ class PixiViz extends Component {
         to_update.push(d);
       }
     }
-    let to_remove = container.children.filter(d=>incoming_ids.indexOf(d._data_.id)===-1);
 
-    console.log(this.props.data.length, to_add.length, to_remove.length);
+    let to_remove = []
+    
+    for (let i=0; i<container.children.length; ++i){
+      const this_sprite = container.children[i];
+      if (incoming_ids.indexOf(this_sprite._data_.id)===-1) {
+        to_remove.push(this_sprite);
+      }
+    };
+
+    // console.log(to_add, to_update, to_remove);
     
     for (let i=0; i<to_add.length; ++i) {
       // create a new Sprite from an image path
@@ -63,6 +71,7 @@ class PixiViz extends Component {
       // sprite.scale.y = 1/dpr/Utilities.clampZoomOptions.maxScale;
       sprite.scale.x = 1/7;
       sprite.scale.y = 1/7;
+
       sprite._data_ = to_add[i];
       sprite.interactive = true;
       sprite.on('mousedown', ()=>console.log(sprite._data_));
@@ -80,9 +89,7 @@ class PixiViz extends Component {
     }
 
     if (this.props.data.length!==container.children.length) {
-      console.warn('Problem in sprites update');
-      console.warn('total data:',this.props.data.length)
-      console.warn('total sprites:',container.children.length)
+      console.warn('Problem in sprites update:\ntotal data:',this.props.data.length,'total sprites:',container.children.length);
     }
     this.repositionSprites();
   }
@@ -91,11 +98,11 @@ class PixiViz extends Component {
     let simulation_is_running = true;
     simulation.nodes(this.props.data);
     if (this.props.model === 'stripes') {
-      simulation.force('x').x(d=>d[`${this.props.model.charAt(0)}_x`]*width);
-      simulation.force('y').y(d=>d[`${this.props.model.charAt(0)}_y`]*height);
+      simulation.force('x').x(d=>+d[`${this.props.model.charAt(0)}_x`]*width);
+      simulation.force('y').y(d=>+d[`${this.props.model.charAt(0)}_y`]*height);
     } else {
-      simulation.force('x').x(d=>d[`${this.props.model.charAt(0)}_x`]);
-      simulation.force('y').y(d=>d[`${this.props.model.charAt(0)}_y`]);
+      simulation.force('x').x(d=>+d[`${this.props.model.charAt(0)}_x`]);
+      simulation.force('y').y(d=>+d[`${this.props.model.charAt(0)}_y`]);
     }
     simulation.on("end", () => {
       console.log('simulation ended for', this.props.model);

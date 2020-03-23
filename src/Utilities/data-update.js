@@ -116,9 +116,9 @@ request.get(data_url, function (error, response, body) {
             fs.writeFileSync(daily_datasets_path, header_data_list);
         } else if (script_arguments.dates==='latest') {
             if (!fs.existsSync(daily_datasets_path)) {
-                fs.writeFileSync(daily_datasets_path, header_data_list);
-                dates = dates.slice(dates.length-1, dates.length);    
+                fs.writeFileSync(daily_datasets_path, header_data_list);   
             }
+            dates = dates.slice(dates.length-1, dates.length); 
         }  else if (script_arguments.dates.includes('[')) {
             script_arguments.dates = JSON.parse(script_arguments.dates);
             console.log('\nYou passed an array of dates.\nThe script will replace existing data with dates from');
@@ -204,11 +204,13 @@ request.get(data_url, function (error, response, body) {
                         n._x = +(n._x).toFixed(3);
                         n._y = +(n._y).toFixed(3);
 
-                        n.x = n._x;
-                        n.y = n._y;
+                        // n.x = n._x;
+                        // n.y = n._y;
                         
                         delete n.vx;
                         delete n.vy;
+                        delete n.x;
+                        delete n.y;
                         delete n.index;
                     })
                 })
