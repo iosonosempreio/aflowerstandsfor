@@ -82,6 +82,8 @@ const projection = d3.geoNaturalEarth1()
     .scale(Utilities.map.scale)
     .center([12.368775000000001, 42.9451139]);
 
+let nodes = [], links = [],clusters = [];
+
 const simulation = d3.forceSimulation()
     .on('tick',()=>{
         let alpha = 'simulation alpha:' + simulation.alpha().toString();
@@ -89,10 +91,11 @@ const simulation = d3.forceSimulation()
         process.stdout.clearLine();
         process.stdout.write(alpha);
     })
-    .force("x", d3.forceX(d=>d.origin_x))
-    .force("y", d3.forceY(d=>d.origin_y))
     .force("charge", d3.forceManyBody().strength(-0.5))
-    .force("collision", d3.forceCollide(Utilities.emoji.size/8))
+    .force("link", d3.forceLink().id(d => d.id).distance(0).strength(1))
+    .force("x", d3.forceX(d=>d.origin_x).strength(0.1))
+    .force("y", d3.forceY(d=>d.origin_y).strength(0.1))
+    .force("collision", d3.forceCollide(Utilities.emoji.size/9))
     // .alphaDecay(0.01)
     // .alphaMin(0.01)
     .stop();
@@ -103,9 +106,9 @@ request.get(data_url, function (error, response, body) {
     if (!error && response.statusCode == 200) {
         fs.writeFileSync('public/data/dpc-covid19-ita-regioni.csv', body);
         const data = d3.csvParse(body);
-        const regions = d3.nest()
-            .key(d=>d.denominazione_regione)
-            .entries(data);
+        // const regions = d3.nest()
+        //     .key(d=>d.denominazione_regione)
+        //     .entries(data);
         const dataByDates = d3.nest()
             .key(d=>d.data)
             .entries(data);
@@ -163,6 +166,8 @@ request.get(data_url, function (error, response, body) {
             }
             data_day.splice(data_day.indexOf(bolzano),1);
             data_day.splice(data_day.indexOf(trento),1, trentino);
+            // One element for each category for each region
+            clusters = [];
             data_day.forEach((region,i)=>{
                 categories.forEach(c=>{
                     for (let ii=0; ii<region[c]; ii++){
@@ -175,9 +180,15 @@ request.get(data_url, function (error, response, body) {
                           'origin_x': point[0],
                           'origin_y': point[1]
                         }
+                        if (ii===0) {
+                            clusters.push(obj);
+                        } else {
+                           obj.cluster = clusters[clusters.length-1];  
+                        }     
                         data_to_spatialize[this_date].push(obj);
                       }
                 })
+            shuffle(data_to_spatialize[this_date]);
             })
         })
 
@@ -185,9 +196,18 @@ request.get(data_url, function (error, response, body) {
         runSimulation(counter);
         function runSimulation(index) {
             console.log('\nspatializing data from', dates[index]);
-            const nodes = data_to_spatialize[dates[index]],
-                width=1,
-                height=1;
+            nodes = data_to_spatialize[dates[index]],
+                    width=1,
+                    height=1;
+            links = [];
+            for (let i=0, link; i<nodes.length; i++){
+                if (nodes[i].cluster){
+                    link = {source:nodes[i].cluster.id, target: nodes[i].id}
+                    links.push(link);
+                }
+            }
+            console.log('nodes amount:', nodes.length);
+            console.log('clusterss amount:', clusters.length)
             function adjust_coordinates() {
                 let bands_x = 0;
                 categories.forEach(category=>{
@@ -196,59 +216,82 @@ request.get(data_url, function (error, response, body) {
                     const band_width = width*percentage;
                     bands_x += band_width;
                     band_data.forEach(n=>{
-                        n.stripes_x = +(bands_x + d3.randomUniform(-band_width,0)()).toFixed(3);
-                        n.stripes_y = +(d3.randomUniform(0, height)().toFixed(3));
+                        n.stripes_x = Number(bands_x + d3.randomUniform(-band_width,0)()).toFixed(3);
+                        n.stripes_y = Number(d3.randomUniform(0, height)().toFixed(3));
 
-                        n.bunches_x = +(n.x).toFixed(3);
-                        n.bunches_y = +(n.y).toFixed(3);
-
-                        n.clusters_x = +(n.x).toFixed(3);
-                        n.clusters_y = +(n.y).toFixed(3);
-
-                        n.origin_x = +(n.origin_x).toFixed(3);
-                        n.origin_y = +(n.origin_y).toFixed(3);
+                        n.origin_x = Number(n.origin_x).toFixed(3);
+                        n.origin_y = Number(n.origin_y).toFixed(3);
                         
                         delete n.vx;
                         delete n.vy;
                         delete n.x;
                         delete n.y;
                         delete n.index;
+                        delete n.cluster;
                     })
                 })
             }
-            simulation.nodes(nodes)
+            simulation.nodes(nodes);
+            simulation.force("link").links([]).strength(1);
+            simulation
                 .alpha(1)
                 .restart()
                 .on('end',()=>{
-                    
                     process.stdout.cursorTo(0);
                     process.stdout.clearLine();
-                    process.stdout.write('simulation ended\n');
-
-                    adjust_coordinates();
+                    process.stdout.write('simulation for bunches is ended\n');
+                    nodes.forEach(n=>{
+                        n.bunches_x = Number(n.x).toFixed(3);
+                        n.bunches_y = Number(n.y).toFixed(3);
+                    });
+                    // remove links and run the simulation for bunches
+                    simulation.force("link").links(links);
+                    simulation.alpha(1).restart().on('end',()=>{
+                        process.stdout.cursorTo(0);
+                        process.stdout.clearLine();
+                        process.stdout.write('simulation for clusters is ended\n');
+                        nodes.forEach(n=>{
+                            n.clusters_x = Number(n.x).toFixed(3);
+                            n.clusters_y = Number(n.y).toFixed(3);
+                        });
+                        adjust_coordinates();
                     
-                    const new_dataset = `${dates[index]},${dates[index].replace(/:/g,'-')}.csv\n`
-                    fs.appendFileSync(daily_datasets_path, new_dataset);
-
-                    const fields = Object.keys(nodes[0]);
-                    const opts = { fields };
-
-                    try {
-                        const parser = new Parser(opts);
-                        const csv = parser.parse(nodes);
-                        fs.writeFileSync(`public/data/${dates[index].replace(/:/g,'-')}.csv`, csv);
-                    } catch (err) {
-                        console.error(err);
-                    }
-
-                    counter++;
-                    if (counter<dates.length){
-                        runSimulation(counter);
-                    } else {
-                        console.log('all calculated')
-                        // fs.writeFileSync('public/data/covi-z-storico.json', JSON.stringify(data_to_spatialize)); 
-                    }
+                        const new_dataset = `${dates[index]},${dates[index].replace(/:/g,'-')}.csv\n`
+                        fs.appendFileSync(daily_datasets_path, new_dataset);
+    
+                        const fields = Object.keys(nodes[0]);
+                        const opts = { fields };
+    
+                        try {
+                            const parser = new Parser(opts);
+                            const csv = parser.parse(nodes);
+                            fs.writeFileSync(`public/data/${dates[index].replace(/:/g,'-')}.csv`, csv);
+                        } catch (err) {
+                            console.error(err);
+                        }
+    
+                        counter++;
+                        if (counter<dates.length){
+                            runSimulation(counter);
+                        } else {
+                            console.log('all calculated')
+                            // fs.writeFileSync('public/data/covi-z-storico.json', JSON.stringify(data_to_spatialize)); 
+                        }
+                    })
                 });
         }
     }
 });
+
+
+/**
+ * Shuffles array in place. ES6 version
+ * @param {Array} a items An array containing the items.
+ */
+function shuffle(a) {
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}

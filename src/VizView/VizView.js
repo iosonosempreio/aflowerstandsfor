@@ -52,7 +52,7 @@ class VizView extends Component {
     const index = dates.length-1;
     const data_day = data[dates[index]];
 
-    await this.setState({data:data, dates:dates, current_date:dates[index], current_date_index:index, data_day:data_day, model:'stripes', mapGeometries:fetched[1]});
+    await this.setState({data:data, dates:dates, current_date:dates[index], current_date_index:index, data_day:data_day, model:'bunches', mapGeometries:fetched[1]});
   }
   render() {
     return  <div ref={this._setRef.bind(this)}>

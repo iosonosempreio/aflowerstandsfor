@@ -86,6 +86,12 @@ class PixiViz extends Component {
     } else {
       simulation.force('x').x(d=>+d[`${this.props.model}_x`]);
       simulation.force('y').y(d=>+d[`${this.props.model}_y`]);
+
+      // const c = this.props.data.find(d=>d.denominazione_regione==='Lombardia');
+      // console.log(c)
+      // viewport.snap(Number(c.origin_x) - width/2, Number(c.origin_y) - height/2,{topLeft:true,interrupt:true,removeOnComplete:true,removeOnInterrupt:true});
+      // viewport.snapZoom({center:new PIXI.Point(width/2,height/2),width: width, interrupt:true, removeOnComplete: true, removeOnInterrupt: true});
+      
       map.renderable = true;
     }
     simulation.on("end", () => {
