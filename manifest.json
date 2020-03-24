@@ -1,5 +1,6 @@
 {
- "name": "App",
+ "short_name": "Papaveri",
+ "name": "Mille papaveri rossi",
  "icons": [
   {
    "src": "\/android-icon-36x36.png",
@@ -37,5 +38,9 @@
    "type": "image\/png",
    "density": "4.0"
   }
- ]
+ ],
+ "start_url": ".",
+ "display": "standalone",
+ "theme_color": "#000000",
+ "background_color": "#ffffff"
 }
