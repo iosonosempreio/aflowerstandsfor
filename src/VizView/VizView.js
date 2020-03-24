@@ -58,7 +58,7 @@ class VizView extends Component {
     return  <div ref={this._setRef.bind(this)}>
               <p>
                 <input type="button" name="prev-date" value="⏪" onClick={ ()=>this.changeDate(this.state.current_date_index-1) } />
-                <input type="button" name="prev-date" value="▶️" onClick={ ()=>this.setState({play:!this.state.play}) } />
+                <input type="button" name="prev-date" value="▶️" onClick={ ()=>this.setState({play:!this.state.play}, this.changeDate(this.state.current_date_index+1)) } />
                 <input type="button" name="prev-date" value="⏩" onClick={ ()=>this.changeDate(this.state.current_date_index+1) } />
                 <input type="button" name="bands" value="🖼" onClick={ ()=>this.changeModel('stripes') } />
                 <input type="button" name="bunch" value="💐" onClick={ ()=>this.changeModel('bunches') } />

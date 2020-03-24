@@ -23,7 +23,7 @@ const projection = d3.geoNaturalEarth1()
 const simulation = d3.forceSimulation()
   .force("x", d3.forceX())
   .force("y", d3.forceY())
-  .alphaMin(0.005)
+  .alphaMin(0.01)
   .stop();
 
 class PixiViz extends Component {
@@ -171,6 +171,7 @@ class PixiViz extends Component {
     this.updateSprites();
   }
   componentDidUpdate(prevProps){
+    simulation.stop();
     if (prevProps.data !== this.props.data) {
       this.updateSprites();
     } else if (prevProps.model !== this.props.model) {
