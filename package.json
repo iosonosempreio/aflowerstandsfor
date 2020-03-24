@@ -23,7 +23,8 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "data-update": "node ./src/Utilities/data-update.js date=missing dataset=remote"
+    "data-update": "node ./src/Utilities/data-update.js date=latest dataset=remote",
+    "update-all": "git pull origin master && npm run data-update && git add . && git commit -m 'data-update' && git push origin master && npm run deploy"
   },
   "eslintConfig": {
     "extends": "react-app"

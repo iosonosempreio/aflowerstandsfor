@@ -5,9 +5,11 @@ import { Viewport } from "pixi-viewport";
 
 import Utilities from '../Utilities/Utilities';
 
-let pixiApp, viewport, container, textures = {},
+let pixiApp, viewport, container, map, textures = {},
+    flowers = {},
     width,
     height,
+    margin=15,
     dpr = window.devicePixelRatio || 1;
 
 // const projection = d3.geoConicEqualArea()
@@ -19,73 +21,51 @@ const projection = d3.geoNaturalEarth1()
   .center([12.368775000000001, 42.9451139]);
 
 const simulation = d3.forceSimulation()
-  .force("x", d3.forceX(d=>d.x))
-  .force("y", d3.forceY(d=>d.y))
+  .force("x", d3.forceX())
+  .force("y", d3.forceY())
+  .alphaMin(0.005)
   .stop();
 
 class PixiViz extends Component {
   constructor(props) {
     super(props);
     this.updateSprites=this.updateSprites.bind(this);
+    this.repositionSprites=this.repositionSprites.bind(this);
   }
   _setRef(componentNode) {
     this._rootNode = componentNode;
   }
   updateSprites(){
-
-    let existing_ids=[];
-    for (let i=0; i<container.children.length; ++i){
-      existing_ids.push(container.children[i]._data_.id);
-    };
-    let incoming_ids=[];
-    let to_add=[];
-    let to_update=[];
+    const to_remove = {...flowers};
     for (let i=0; i<this.props.data.length; ++i) {
       const d = this.props.data[i];
-      incoming_ids.push(d.id);
-      if (existing_ids.indexOf(d.id)===-1) {
-        to_add.push(d);
+      delete d.date;
+      const id = d.id;
+      if (!flowers[id]) {
+        const sprite = PIXI.Sprite.from(textures[d.category]);
+        sprite.anchor.set(0.5);
+        sprite.scale.x = 1/7;
+        sprite.scale.y = 1/7;
+        sprite._data_ = d;
+        sprite.interactive = true;
+        sprite.buttonMode = true;
+        sprite.on('click',()=>console.log(d));
+        flowers[this.props.data[i].id] = sprite;
+        container.addChild(sprite);
+        
       } else {
-        to_update.push(d);
+        const current_x = flowers[id]._data_.x;
+        const current_y = flowers[id]._data_.y;
+        d.x = current_x;
+        d.y = current_y;
+        flowers[id]._data_ = d;
       }
+      delete to_remove[id];
     }
 
-    let to_remove = []
-    
-    for (let i=0; i<container.children.length; ++i){
-      const this_sprite = container.children[i];
-      if (incoming_ids.indexOf(this_sprite._data_.id)===-1) {
-        to_remove.push(this_sprite);
-      }
-    };
-
-    // console.log(to_add, to_update, to_remove);
-    
-    for (let i=0; i<to_add.length; ++i) {
-      // create a new Sprite from an image path
-      const sprite = PIXI.Sprite.from(textures[to_add[i].category]);
-      // center the sprite's anchor point
-      sprite.anchor.set(0.5);
-      // move the sprite to the center of the screen
-      // sprite.scale.x = 1/dpr/Utilities.clampZoomOptions.maxScale;
-      // sprite.scale.y = 1/dpr/Utilities.clampZoomOptions.maxScale;
-      sprite.scale.x = 1/7;
-      sprite.scale.y = 1/7;
-
-      sprite._data_ = to_add[i];
-      sprite.interactive = true;
-      sprite.on('mousedown', ()=>console.log(sprite._data_));
-      container.addChild(sprite);
-    }
-    
-    for (let i=0; i<to_update.length; ++i) {
-      const index = existing_ids.indexOf(to_update[i].id);
-      const sprite = container.children[index];
-      sprite._data_ = to_update[i];
-    }
-
-    for (let i=0; i<to_remove.length; ++i) {
-      container.removeChild(to_remove[i]);
+    for (let id in to_remove) {
+      delete flowers[id];
+      container.removeChild(to_remove[id]);
     }
 
     if (this.props.data.length!==container.children.length) {
@@ -98,16 +78,25 @@ class PixiViz extends Component {
     let simulation_is_running = true;
     simulation.nodes(this.props.data);
     if (this.props.model === 'stripes') {
-      simulation.force('x').x(d=>+d[`${this.props.model.charAt(0)}_x`]*width);
-      simulation.force('y').y(d=>+d[`${this.props.model.charAt(0)}_y`]*height);
+      simulation.force('x').x(d=> margin+d[`${this.props.model}_x`]*(width-margin*2) );
+      simulation.force('y').y(d=> margin+d[`${this.props.model}_y`]*(height-margin*2) );
+      viewport.snap(0,0,{topLeft:true,interrupt:true,removeOnComplete:true,removeOnInterrupt:true});
+      viewport.snapZoom({center:new PIXI.Point(width/2,height/2),width: width, interrupt:true, removeOnComplete: true, removeOnInterrupt: true});
+      map.renderable = false;
     } else {
-      simulation.force('x').x(d=>+d[`${this.props.model.charAt(0)}_x`]);
-      simulation.force('y').y(d=>+d[`${this.props.model.charAt(0)}_y`]);
+      simulation.force('x').x(d=>+d[`${this.props.model}_x`]);
+      simulation.force('y').y(d=>+d[`${this.props.model}_y`]);
+      map.renderable = true;
     }
     simulation.on("end", () => {
       console.log('simulation ended for', this.props.model);
       simulation_is_running = false;
     });
+    simulation.on('end',()=>{
+      if (this.props.play){
+        this.props.changeDate(this.props.current_date_index+1)
+      }
+    })
     simulation.alpha(1)
     simulation.restart();
 
@@ -117,7 +106,7 @@ class PixiViz extends Component {
         container.children[i].x = container.children[i]._data_.x;
         container.children[i].y = container.children[i]._data_.y;
       }
-      if (simulation_is_running || simulation.alpha()>0.1){
+      if (simulation_is_running || simulation.alpha()>0.05){
         requestAnimationFrame(reposition);
       }
     }
@@ -129,8 +118,7 @@ class PixiViz extends Component {
     pixiApp = new PIXI.Application({
       width: width,
       height: height,
-      // backgroundColor: 0xf4fff1,
-      backgroundColor: 0xfff3bf,
+      backgroundColor: 0xf4fff1,
       resolution: dpr,
       autoResize: true
     });
@@ -154,21 +142,21 @@ class PixiViz extends Component {
       .wheel()
     pixiApp.stage.addChild(viewport);
 
+    map = new PIXI.Container();
+    map.renderable = false;
+    viewport.addChild(map);
+
     for (let i=0; i<this.props.mapGeometries.features.length; i++) {
       const region = this.props.mapGeometries.features[i];
-
       const this_graphics = new PIXI.Graphics();
-
       const path = d3.geoPath()
         .projection(projection)
         .context(this_graphics);
-
       this_graphics.beginFill(0xffffff, 1);
       this_graphics.lineStyle(1, 0x333333);
         path(region);
       this_graphics.endFill();
-
-      viewport.addChild(this_graphics);
+      map.addChild(this_graphics);
     }
 
     container = new PIXI.Container();
@@ -190,7 +178,7 @@ class PixiViz extends Component {
     }
   }
   render() {
-    return <div style={{width:'100vw',height:'100vh'}} ref={this._setRef.bind(this)}></div>;
+    return <div style={{width:'100vw',height:'calc(100vh - 144px)'}} ref={this._setRef.bind(this)}></div>;
   }
 }
 

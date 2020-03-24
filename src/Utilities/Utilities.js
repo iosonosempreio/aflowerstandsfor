@@ -6,7 +6,7 @@ Utilities.emoji = {
 
 Utilities.clampZoomOptions = {
     minScale:0.01,
-    maxScale:10
+    maxScale:7
 }
 
 Utilities.emoji_dictionary = {

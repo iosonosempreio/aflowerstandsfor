@@ -6,7 +6,8 @@ class VizView extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      data: null
+      data: null,
+      play:false
     }
     this.changeDate = this.changeDate.bind(this);
   }
@@ -42,27 +43,38 @@ class VizView extends Component {
     for (let i=0; i<dates.length; i++) {
       for (let ii=0; ii<dailyDatasets[i].length; ii++){
         const elm = dailyDatasets[i][ii];
-        elm.x=elm._x=Number(elm._x);
-        elm.y=elm._y=Number(elm._y);
+        elm.x=Number(elm.origin_x);
+        elm.y=Number(elm.origin_y);
       }
       data[dates[i]] = dailyDatasets[i];
     }
     
-    const index = 0;
+    const index = dates.length-1;
     const data_day = data[dates[index]];
 
-    await this.setState({data:data, dates:dates, current_date:dates[index], current_date_index:index, data_day:data_day, model:'bunches', mapGeometries:fetched[1]});
+    await this.setState({data:data, dates:dates, current_date:dates[index], current_date_index:index, data_day:data_day, model:'stripes', mapGeometries:fetched[1]});
   }
   render() {
     return  <div ref={this._setRef.bind(this)}>
               <p>
                 <input type="button" name="prev-date" value="⏪" onClick={ ()=>this.changeDate(this.state.current_date_index-1) } />
+                <input type="button" name="prev-date" value="▶️" onClick={ ()=>this.setState({play:!this.state.play}) } />
                 <input type="button" name="prev-date" value="⏩" onClick={ ()=>this.changeDate(this.state.current_date_index+1) } />
                 <input type="button" name="bands" value="🖼" onClick={ ()=>this.changeModel('stripes') } />
                 <input type="button" name="bunch" value="💐" onClick={ ()=>this.changeModel('bunches') } />
                 <input type="button" name="clusters" value="🎯" onClick={ ()=>this.changeModel('clusters') } />
+                {this.state.current_date}
               </p>
-              {this.state.data && <PixiViz data={this.state.data_day.reverse()} model={this.state.model} mapGeometries={this.state.mapGeometries} />}
+              {this.state.data &&
+                <PixiViz
+                  data={this.state.data_day.reverse()}
+                  model={this.state.model}
+                  mapGeometries={this.state.mapGeometries}
+                  play={this.state.play}
+                  current_date_index={this.state.current_date_index}
+                  changeDate={this.changeDate}
+                />
+              }
             </div>;
   }
 }
