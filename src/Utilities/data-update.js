@@ -7,7 +7,8 @@ console.log('\nThis scripts create spatialized data for the project.\n');
 
 let script_arguments = {
     'dates': 'all',
-    'dataset': 'remote'
+    'dataset': 'remote',
+    'overwrite': false
 }
 if (process.argv.length > 2) {
     process.argv.slice(2).forEach(arg=>{
@@ -88,8 +89,8 @@ const simulation = d3.forceSimulation()
         process.stdout.clearLine();
         process.stdout.write(alpha);
     })
-    .force("x", d3.forceX(d=>d._x))
-    .force("y", d3.forceY(d=>d._y))
+    .force("x", d3.forceX(d=>d.origin_x))
+    .force("y", d3.forceY(d=>d.origin_y))
     .force("charge", d3.forceManyBody().strength(-0.5))
     .force("collision", d3.forceCollide(Utilities.emoji.size/8))
     // .alphaDecay(0.01)
@@ -100,6 +101,7 @@ console.log('Downloading data from:',data_url);
 
 request.get(data_url, function (error, response, body) {
     if (!error && response.statusCode == 200) {
+        fs.writeFileSync('public/data/dpc-covid19-ita-regioni.csv', body);
         const data = d3.csvParse(body);
         const regions = d3.nest()
             .key(d=>d.denominazione_regione)
@@ -123,7 +125,9 @@ request.get(data_url, function (error, response, body) {
             script_arguments.dates = JSON.parse(script_arguments.dates);
             console.log('\nYou passed an array of dates.\nThe script will replace existing data with dates from');
             console.log(dates[script_arguments.dates[0]], 'to', dates[script_arguments.dates[script_arguments.dates.length-1]]);
-            fs.writeFileSync(daily_datasets_path, header_data_list);
+            if (!fs.existsSync(daily_datasets_path)) {
+                fs.writeFileSync(daily_datasets_path, header_data_list);
+            }
             dates = dates.slice(script_arguments.dates[0], script_arguments.dates[script_arguments.dates.length-1]);
         } else {
             console.log('Unrecognized "dates" argument:', script_arguments.dates);
@@ -146,16 +150,16 @@ request.get(data_url, function (error, response, body) {
                 denominazione_regione: 'Trentino-Alto Adige',
                 lat: '46.38',
                 long: '11.42',
-                ricoverati_con_sintomi: (bolzano.ricoverati_con_sintomi+trento.ricoverati_con_sintomi),
-                terapia_intensiva: (bolzano.terapia_intensiva+trento.terapia_intensiva),
-                totale_ospedalizzati: (bolzano.totale_ospedalizzati+trento.totale_ospedalizzati),
-                isolamento_domiciliare: (bolzano.isolamento_domiciliare+trento.isolamento_domiciliare),
-                totale_attualmente_positivi: (bolzano.totale_attualmente_positivi+trento.totale_attualmente_positivi),
-                nuovi_attualmente_positivi: (bolzano.nuovi_attualmente_positivi+trento.nuovi_attualmente_positivi),
-                dimessi_guariti: (bolzano.dimessi_guariti+trento.dimessi_guariti),
-                deceduti: (bolzano.deceduti+trento.deceduti),
-                totale_casi: (bolzano.totale_casi+trento.totale_casi),
-                tamponi: (bolzano.tamponi+trento.tamponi)
+                ricoverati_con_sintomi: Number(bolzano.ricoverati_con_sintomi)+Number(trento.ricoverati_con_sintomi),
+                terapia_intensiva: Number(bolzano.terapia_intensiva)+Number(trento.terapia_intensiva),
+                totale_ospedalizzati: Number(bolzano.totale_ospedalizzati)+Number(trento.totale_ospedalizzati),
+                isolamento_domiciliare: Number(bolzano.isolamento_domiciliare)+Number(trento.isolamento_domiciliare),
+                totale_attualmente_positivi: Number(bolzano.totale_attualmente_positivi)+Number(trento.totale_attualmente_positivi),
+                nuovi_attualmente_positivi: Number(bolzano.nuovi_attualmente_positivi)+Number(trento.nuovi_attualmente_positivi),
+                dimessi_guariti: Number(bolzano.dimessi_guariti)+Number(trento.dimessi_guariti),
+                deceduti: Number(bolzano.deceduti)+Number(trento.deceduti),
+                totale_casi: Number(bolzano.totale_casi)+Number(trento.totale_casi),
+                tamponi: Number(bolzano.tamponi)+Number(trento.tamponi)
             }
             data_day.splice(data_day.indexOf(bolzano),1);
             data_day.splice(data_day.indexOf(trento),1, trentino);
@@ -168,8 +172,8 @@ request.get(data_url, function (error, response, body) {
                           'category': c,
                           'denominazione_regione': region.denominazione_regione,
                           'date': region.data.split(' ')[0],
-                          '_x': point[0],
-                          '_y': point[1]
+                          'origin_x': point[0],
+                          'origin_y': point[1]
                         }
                         data_to_spatialize[this_date].push(obj);
                       }
@@ -192,20 +196,17 @@ request.get(data_url, function (error, response, body) {
                     const band_width = width*percentage;
                     bands_x += band_width;
                     band_data.forEach(n=>{
-                        n.s_x = +(bands_x + d3.randomUniform(-band_width,0)()).toFixed(3);
-                        n.s_y = +(d3.randomUniform(0, height)().toFixed(3));
+                        n.stripes_x = +(bands_x + d3.randomUniform(-band_width,0)()).toFixed(3);
+                        n.stripes_y = +(d3.randomUniform(0, height)().toFixed(3));
 
-                        n.b_x = +(n.x).toFixed(3);
-                        n.b_y = +(n.y).toFixed(3);
+                        n.bunches_x = +(n.x).toFixed(3);
+                        n.bunches_y = +(n.y).toFixed(3);
 
-                        n.c_x = +(n.x).toFixed(3);
-                        n.c_y = +(n.y).toFixed(3);
+                        n.clusters_x = +(n.x).toFixed(3);
+                        n.clusters_y = +(n.y).toFixed(3);
 
-                        n._x = +(n._x).toFixed(3);
-                        n._y = +(n._y).toFixed(3);
-
-                        // n.x = n._x;
-                        // n.y = n._y;
+                        n.origin_x = +(n.origin_x).toFixed(3);
+                        n.origin_y = +(n.origin_y).toFixed(3);
                         
                         delete n.vx;
                         delete n.vy;
