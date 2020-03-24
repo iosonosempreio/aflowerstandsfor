@@ -159,7 +159,7 @@ class PixiViz extends Component {
         .projection(projection)
         .context(this_graphics);
       this_graphics.beginFill(0xffffff, 1);
-      this_graphics.lineStyle(1, 0x333333);
+      this_graphics.lineStyle(1, 0x333333, 0.5);
         path(region);
       this_graphics.endFill();
       map.addChild(this_graphics);

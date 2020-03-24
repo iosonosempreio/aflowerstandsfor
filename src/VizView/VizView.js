@@ -56,15 +56,19 @@ class VizView extends Component {
   }
   render() {
     return  <div ref={this._setRef.bind(this)}>
-              <p>
-                <input type="button" name="prev-date" value="⏪" onClick={ ()=>this.changeDate(this.state.current_date_index-1) } />
-                <input type="button" name="prev-date" value="▶️" onClick={ ()=>this.setState({play:!this.state.play}, this.changeDate(this.state.current_date_index+1)) } />
-                <input type="button" name="prev-date" value="⏩" onClick={ ()=>this.changeDate(this.state.current_date_index+1) } />
-                <input type="button" name="bands" value="🖼" onClick={ ()=>this.changeModel('stripes') } />
-                <input type="button" name="bunch" value="💐" onClick={ ()=>this.changeModel('bunches') } />
-                <input type="button" name="clusters" value="🎯" onClick={ ()=>this.changeModel('clusters') } />
-                {this.state.current_date}
-              </p>
+              <header>
+                header
+                <p>
+                  <input type="button" name="prev-date" value="⏪" onClick={ ()=>this.changeDate(this.state.current_date_index-1) } />
+                  <input type="button" name="prev-date" value="▶️" onClick={ ()=>this.setState({play:!this.state.play}, this.changeDate(this.state.current_date_index+1)) } />
+                  <input type="button" name="prev-date" value="⏩" onClick={ ()=>this.changeDate(this.state.current_date_index+1) } />
+                  <input type="button" name="bands" value="🖼" onClick={ ()=>this.changeModel('stripes') } />
+                  <input type="button" name="bunch" value="💐" onClick={ ()=>this.changeModel('bunches') } />
+                  <input type="button" name="clusters" value="🎯" onClick={ ()=>this.changeModel('clusters') } />
+                  {this.state.current_date}
+                </p>
+              </header>
+              
               {this.state.data &&
                 <PixiViz
                   data={this.state.data_day.reverse()}
@@ -75,6 +79,9 @@ class VizView extends Component {
                   changeDate={this.changeDate}
                 />
               }
+              <footer>
+                footer
+              </footer>
             </div>;
   }
 }
