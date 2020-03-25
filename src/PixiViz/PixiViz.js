@@ -21,9 +21,9 @@ const projection = d3.geoNaturalEarth1()
   .center([12.368775000000001, 42.9451139]);
 
 const simulation = d3.forceSimulation()
-  .force("x", d3.forceX())
-  .force("y", d3.forceY())
-  .alphaMin(0.01)
+  .force("x", d3.forceX().strength(0.15))
+  .force("y", d3.forceY().strength(0.15))
+  .alphaMin(0.03)
   .stop();
 
 class PixiViz extends Component {
@@ -47,12 +47,11 @@ class PixiViz extends Component {
         sprite.scale.x = 1/7;
         sprite.scale.y = 1/7;
         sprite._data_ = d;
-        sprite.interactive = true;
-        sprite.buttonMode = true;
-        sprite.on('click',()=>console.log(d));
+        // sprite.interactive = true;
+        // sprite.buttonMode = true;
+        // sprite.on('click',()=>console.log(d));
         flowers[this.props.data[i].id] = sprite;
         container.addChild(sprite);
-        
       } else {
         const current_x = flowers[id]._data_.x;
         const current_y = flowers[id]._data_.y;
@@ -67,10 +66,10 @@ class PixiViz extends Component {
       delete flowers[id];
       container.removeChild(to_remove[id]);
     }
-
-    if (this.props.data.length!==container.children.length) {
+    // console.log(container)
+    // if (this.props.data.length!==container.children.length) {
       console.warn('Problem in sprites update:\ntotal data:',this.props.data.length,'total sprites:',container.children.length);
-    }
+    // }
     this.repositionSprites();
   }
   repositionSprites(){
@@ -165,16 +164,28 @@ class PixiViz extends Component {
       map.addChild(this_graphics);
     }
 
-    container = new PIXI.Container();
+    container = new PIXI.ParticleContainer(100000);
     viewport.addChild(container);
-
-    Utilities.categories.forEach(category=>{
-      // source, frame, orig, trim, rotate
-      const texture = PIXI.Texture.from(`./${category}_40x40.png`);
-      textures[category] = texture;
+    pixiApp.loader.add('sprites', './flowers-textures-1.png');
+    pixiApp.loader.onProgress.add((e)=>{
+      console.log(e.progress+'%');
     })
+    pixiApp.loader.onComplete.add(async ()=>{
+      const baseTexture = pixiApp.loader.resources.sprites.texture.baseTexture;
 
-    this.updateSprites();
+      const flowers_textures_info = await d3.json('./flowers-textures-1.json');
+      for (let texture_name in flowers_textures_info.frames) {
+        const frame = flowers_textures_info.frames[texture_name].frame;
+        const texture = new PIXI.Texture(
+          baseTexture,
+          new PIXI.Rectangle(frame.x, frame.y, frame.w, frame.h)
+        );
+        textures[texture_name.replace('.png','')] = texture;
+      }
+
+      this.updateSprites();
+    })
+    pixiApp.loader.load();
   }
   componentDidUpdate(prevProps){
     simulation.stop();
@@ -183,6 +194,7 @@ class PixiViz extends Component {
     } else if (prevProps.model !== this.props.model) {
       this.repositionSprites();
     }
+    console.log(container);
   }
   render() {
     return <div style={{width:'100vw',height:'calc(100vh - 144px)'}} ref={this._setRef.bind(this)}></div>;

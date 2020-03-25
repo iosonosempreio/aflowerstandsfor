@@ -23,8 +23,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "data-update": "node ./src/Utilities/data-update.js date=latest dataset=remote",
-    "update-all": "git pull origin master && npm run data-update && git add . && git commit -m 'data-update' && git push origin master && npm run deploy"
+    "create-textures-atlas":"gf-pack --path 'public/' -format pixi.js --resizeWidth 40 --resizeHeight 40 --name 'flowers-textures' public/textures/*.png"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -43,6 +42,7 @@
   },
   "devDependencies": {
     "file-saver": "^2.0.2",
+    "gamefroot-texture-packer": "^1.1.2",
     "gh-pages": "^2.2.0",
     "json2csv": "^5.0.0"
   }

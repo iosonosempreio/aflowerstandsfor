@@ -49,7 +49,8 @@ class VizView extends Component {
       data[dates[i]] = dailyDatasets[i];
     }
     
-    const index = dates.length-1;
+    let index = dates.length-1;
+    index = 0;
     const data_day = data[dates[index]];
 
     await this.setState({data:data, dates:dates, current_date:dates[index], current_date_index:index, data_day:data_day, model:'bunches', mapGeometries:fetched[1]});
