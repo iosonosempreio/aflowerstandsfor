@@ -67,9 +67,9 @@ class PixiViz extends Component {
       container.removeChild(to_remove[id]);
     }
     // console.log(container)
-    // if (this.props.data.length!==container.children.length) {
+    if (this.props.data.length!==container.children.length) {
       console.warn('Problem in sprites update:\ntotal data:',this.props.data.length,'total sprites:',container.children.length);
-    // }
+    }
     this.repositionSprites();
   }
   repositionSprites(){
@@ -194,7 +194,7 @@ class PixiViz extends Component {
     } else if (prevProps.model !== this.props.model) {
       this.repositionSprites();
     }
-    console.log(container);
+    // console.log(container);
   }
   render() {
     return <div style={{width:'100vw',height:'calc(100vh - 144px)'}} ref={this._setRef.bind(this)}></div>;
