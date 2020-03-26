@@ -43,6 +43,18 @@ const Utilities = {
     }
 }
 
+let r=1;
+
+Utilities.clusters_centers = {
+    "deceduti": [r * Math.cos(Math.PI/180*72*0),r * Math.sin(Math.PI/180*72*0)],
+    "terapia_intensiva": [r * Math.cos(Math.PI/180*72*1),r * Math.sin(Math.PI/180*72*1)],
+    "ricoverati_con_sintomi": [r * Math.cos(Math.PI/180*72*2),r * Math.sin(Math.PI/180*72*2)],
+    "isolamento_domiciliare": [r * Math.cos(Math.PI/180*72*3),r * Math.sin(Math.PI/180*72*3)],
+    "dimessi_guariti": [r * Math.cos(Math.PI/180*72*4),r * Math.sin(Math.PI/180*72*4)]
+}
+
+r = Utilities.emoji.size/9;
+
 const coordinate_regioni = {
     'Abruzzo':[42.21, 13.83],
     'Basilicata':[40.5, 16.5],
@@ -82,7 +94,7 @@ const projection = d3.geoNaturalEarth1()
     .scale(Utilities.map.scale)
     .center([12.368775000000001, 42.9451139]);
 
-let nodes = [], links = [],clusters = [];
+let nodes = [], links = [],clusters = {};
 
 const simulation = d3.forceSimulation()
     .on('tick',()=>{
@@ -167,7 +179,7 @@ request.get(data_url, function (error, response, body) {
             data_day.splice(data_day.indexOf(bolzano),1);
             data_day.splice(data_day.indexOf(trento),1, trentino);
             // One element for each category for each region
-            clusters = [];
+            clusters = {};
             data_day.forEach((region,i)=>{
                 categories.forEach(c=>{
                     for (let ii=0; ii<region[c]; ii++){
@@ -181,9 +193,12 @@ request.get(data_url, function (error, response, body) {
                           'origin_y': point[1]
                         }
                         if (ii===0) {
-                            clusters.push(obj);
+	                        let r_unit = Math.sqrt(Number(region[c])/Math.PI)*2;
+	                        obj.fx = Number(obj.origin_x) + r_unit*r*Utilities.clusters_centers[c][0];
+	                        obj.fy = Number(obj.origin_y) + r_unit*r*Utilities.clusters_centers[c][1];
+                            clusters[`${region.denominazione_regione}_${c}`] = obj;
                         } else {
-                           obj.cluster = clusters[clusters.length-1];  
+                           obj.cluster = clusters[`${region.denominazione_regione}_${c}`];  
                         }     
                         data_to_spatialize[this_date].push(obj);
                       }
@@ -207,7 +222,7 @@ request.get(data_url, function (error, response, body) {
                 }
             }
             console.log('nodes amount:', nodes.length);
-            console.log('clusterss amount:', clusters.length)
+            console.log('clusterss amount:', Object.keys(clusters).length)
             function adjust_coordinates() {
                 let bands_x = 0;
                 categories.forEach(category=>{
@@ -222,6 +237,8 @@ request.get(data_url, function (error, response, body) {
                         n.origin_x = Number(n.origin_x).toFixed(3);
                         n.origin_y = Number(n.origin_y).toFixed(3);
                         
+                        delete n.fx;
+                        delete n.fy;
                         delete n.vx;
                         delete n.vy;
                         delete n.x;
