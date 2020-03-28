@@ -47,6 +47,7 @@ class PixiViz extends Component {
         sprite.scale.x = 1/7;
         sprite.scale.y = 1/7;
         sprite._data_ = d;
+        
         // sprite.interactive = true;
         // sprite.buttonMode = true;
         // sprite.on('click',()=>console.log(d));
@@ -86,6 +87,10 @@ class PixiViz extends Component {
       simulation.force('x').x(d=>+d[`${this.props.model}_x`]);
       simulation.force('y').y(d=>+d[`${this.props.model}_y`]);
 
+      for(let i=0; i < this.props.data.length; ++i)
+      {
+        
+      }
       // const c = this.props.data.find(d=>d.denominazione_regione==='Lombardia');
       // console.log(c)
       // viewport.snap(Number(c.origin_x) - width/2, Number(c.origin_y) - height/2,{topLeft:true,interrupt:true,removeOnComplete:true,removeOnInterrupt:true});
@@ -200,6 +205,88 @@ class PixiViz extends Component {
     return <div style={{width:'100vw',height:'calc(100vh - 144px)'}} ref={this._setRef.bind(this)}></div>;
   }
 }
+
+
+class ViewBuffer{
+  /**
+   * 
+   * @param {{id:Flower}} Sprites 
+   */
+  constructor(Sprites)
+  {
+    master=Sprites;
+  }
+  master={};
+  drawList={};
+  animationTime=0;
+  timeLeft=0;
+  app=null;
+
+  setDrawList(drawList){
+    this.drawList = drawList;
+  }
+  clearObjects(){
+    for(const entity in this.master)
+    {
+      this.master[entity].alpha=0.0;
+    }
+  }
+  drawObjects(){
+    for(const entity in this.drawList)
+    {
+      this.master[entity].alpha =1.0;
+    }
+  }
+  /**
+   * 
+   * @param {Number} animationTime - in seconds 
+   * @param {PIXI.Application} app 
+   */
+  startAnimation(animationTime, app){
+    this.animationTime = animationTime;
+    this.timeLeft = 0;
+    this.app = app;
+    app.ticker.add(this.animate.bind(this));
+  }
+  animate(delta){
+    const FRAMES_PER_SECOND=60;
+    this.timeLeft += delta / FRAMES_PER_SECOND;
+    if(this.timeLeft >= this.animationTime)
+    {
+      //remove animation function from update
+      //set last position
+      this.app.ticker.remove(this.animate);
+    }
+    else
+    {
+      const currentTime = Utilities.easeInOutCubic(this.timeLeft / this.animationTime);
+      for(const entity in this.drawList)
+      {
+        this.master[entity].moveToNextPoint(currentTime);
+      }
+    }
+
+  }
+}
+
+class Flower extends PIXI.Sprite{
+  constructor(texture){
+    super(texture);
+  }
+  nextPoint=new Point();
+  lastPoint=new Point();
+  setNextPoint(point){
+    this.nextPoint = point;
+  }
+  setLastPoint(){
+    this.lastPoint = this.position;
+  }
+  moveToNextPoint(t){
+    this.position.x = (1-t) * this.lastPoint.x + t * this.nextPoint;
+    this.position.y = (1-t) * this.lastPoint.y + t * this.nextPoint; 
+  }
+}
+
 
 export default PixiViz;
 
