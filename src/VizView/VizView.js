@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import * as d3 from 'd3';
 import PixiViz from '../PixiViz/PixiViz';
+
+const initialModel="bunches";
 // import Utilities from '../Utilities/Utilities';
 class VizView extends Component {
   constructor(props) {
@@ -47,9 +49,10 @@ class VizView extends Component {
         elm.y=Number(elm.origin_y);
         if(!(elm.id in this.state.unique_IDS))
         {
-          this.state.unique_IDS[elm.id] = false;
+          this.state.unique_IDS[elm.id] = {category: elm.category, position: {x:elm[initialModel+"_x"], y:elm[initialModel+"_y"]}};
         }
       }
+      console.log(Object.keys(this.state.unique_IDS).length);
       data[dates[i]] = dailyDatasets[i];
     }
     
@@ -57,7 +60,7 @@ class VizView extends Component {
     index = 0;
     const data_day = data[dates[index]];
 
-    await this.setState({data:data, dates:dates, current_date:dates[index], current_date_index:index, data_day:data_day, model:'bunches', mapGeometries:fetched[1]});
+    await this.setState({data:data, dates:dates, current_date:dates[index], current_date_index:index, data_day:data_day, model:initialModel, mapGeometries:fetched[1]});
   }
   render() {
     return  <div ref={this._setRef.bind(this)}>

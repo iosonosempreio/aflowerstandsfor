@@ -12,6 +12,8 @@ let pixiApp, viewport, container, map, textures = {},
     margin=15,
     dpr = window.devicePixelRatio || 1;
 
+let viewBuffer = null;
+
 // const projection = d3.geoConicEqualArea()
 // const projection = d3.geoTransverseMercator()
 const projection = d3.geoNaturalEarth1()
@@ -20,106 +22,81 @@ const projection = d3.geoNaturalEarth1()
   .scale(Utilities.map.scale)
   .center([12.368775000000001, 42.9451139]);
 
-const simulation = d3.forceSimulation()
-  .force("x", d3.forceX().strength(0.15))
-  .force("y", d3.forceY().strength(0.15))
-  .alphaMin(0.03)
-  .stop();
-
 class PixiViz extends Component {
   constructor(props) {
     super(props);
-    this.updateSprites=this.updateSprites.bind(this);
-    this.repositionSprites=this.repositionSprites.bind(this);
+    //this.repositionSprites=this.repositionSprites.bind(this);
+    this.createSprites=this.createSprites.bind(this);
   }
   _setRef(componentNode) {
     this._rootNode = componentNode;
   }
-  updateSprites(){
-    const to_remove = {...flowers};
-    for (let i=0; i<this.props.data.length; ++i) {
-      const d = this.props.data[i];
-      delete d.date;
-      const id = d.id;
-      if (!flowers[id]) {
-        const sprite = PIXI.Sprite.from(textures[d.category]);
-        sprite.anchor.set(0.5);
-        sprite.scale.x = 1/7;
-        sprite.scale.y = 1/7;
-        sprite._data_ = d;
-        
-        // sprite.interactive = true;
-        // sprite.buttonMode = true;
-        // sprite.on('click',()=>console.log(d));
-        flowers[this.props.data[i].id] = sprite;
-        container.addChild(sprite);
-      } else {
-        const current_x = flowers[id]._data_.x;
-        const current_y = flowers[id]._data_.y;
-        d.x = current_x;
-        d.y = current_y;
-        flowers[id]._data_ = d;
-      }
-      delete to_remove[id];
-    }
+  // repositionSprites(){
+  //   // models could be stripes, bunches, clusters
+  //   let simulation_is_running = true;
+  //   simulation.nodes(this.props.data);
+  //   if (this.props.model === 'stripes') {
+  //     simulation.force('x').x(d=> margin+d[`${this.props.model}_x`]*(width-margin*2) );
+  //     simulation.force('y').y(d=> margin+d[`${this.props.model}_y`]*(height-margin*2) );
+  //     viewport.snap(0,0,{topLeft:true,interrupt:true,removeOnComplete:true,removeOnInterrupt:true});
+  //     viewport.snapZoom({center:new PIXI.Point(width/2,height/2),width: width, interrupt:true, removeOnComplete: true, removeOnInterrupt: true});
+  //     map.renderable = false;
+  //   } else {
+  //     simulation.force('x').x(d=>+d[`${this.props.model}_x`]);
+  //     simulation.force('y').y(d=>+d[`${this.props.model}_y`]);
 
-    for (let id in to_remove) {
-      delete flowers[id];
-      container.removeChild(to_remove[id]);
-    }
-    // console.log(container)
-    if (this.props.data.length!==container.children.length) {
-      console.warn('Problem in sprites update:\ntotal data:',this.props.data.length,'total sprites:',container.children.length);
-    }
-    this.repositionSprites();
-  }
-  repositionSprites(){
-    // models could be stripes, bunches, clusters
-    let simulation_is_running = true;
-    simulation.nodes(this.props.data);
-    if (this.props.model === 'stripes') {
-      simulation.force('x').x(d=> margin+d[`${this.props.model}_x`]*(width-margin*2) );
-      simulation.force('y').y(d=> margin+d[`${this.props.model}_y`]*(height-margin*2) );
-      viewport.snap(0,0,{topLeft:true,interrupt:true,removeOnComplete:true,removeOnInterrupt:true});
-      viewport.snapZoom({center:new PIXI.Point(width/2,height/2),width: width, interrupt:true, removeOnComplete: true, removeOnInterrupt: true});
-      map.renderable = false;
-    } else {
-      simulation.force('x').x(d=>+d[`${this.props.model}_x`]);
-      simulation.force('y').y(d=>+d[`${this.props.model}_y`]);
-
-      for(let i=0; i < this.props.data.length; ++i)
-      {
+  //     for(let i=0; i < this.props.data.length; ++i)
+  //     {
         
-      }
-      // const c = this.props.data.find(d=>d.denominazione_regione==='Lombardia');
-      // console.log(c)
-      // viewport.snap(Number(c.origin_x) - width/2, Number(c.origin_y) - height/2,{topLeft:true,interrupt:true,removeOnComplete:true,removeOnInterrupt:true});
-      // viewport.snapZoom({center:new PIXI.Point(width/2,height/2),width: width, interrupt:true, removeOnComplete: true, removeOnInterrupt: true});
+  //     }
+  //     // const c = this.props.data.find(d=>d.denominazione_regione==='Lombardia');
+  //     // console.log(c)
+  //     // viewport.snap(Number(c.origin_x) - width/2, Number(c.origin_y) - height/2,{topLeft:true,interrupt:true,removeOnComplete:true,removeOnInterrupt:true});
+  //     // viewport.snapZoom({center:new PIXI.Point(width/2,height/2),width: width, interrupt:true, removeOnComplete: true, removeOnInterrupt: true});
       
-      map.renderable = true;
-    }
-    simulation.on("end", () => {
-      console.log('simulation ended for', this.props.model);
-      simulation_is_running = false;
-    });
-    simulation.on('end',()=>{
-      if (this.props.play){
-        this.props.changeDate(this.props.current_date_index+1)
-      }
-    })
-    simulation.alpha(1)
-    simulation.restart();
+  //     map.renderable = true;
+  //   }
+  //   simulation.on("end", () => {
+  //     console.log('simulation ended for', this.props.model);
+  //     simulation_is_running = false;
+  //   });
+  //   simulation.on('end',()=>{
+  //     if (this.props.play){
+  //       this.props.changeDate(this.props.current_date_index+1)
+  //     }
+  //   })
+  //   simulation.alpha(1)
+  //   simulation.restart();
 
-    reposition();
-    function reposition(){
-      for(let i=0; i<container.children.length; i++){
-        container.children[i].x = container.children[i]._data_.x;
-        container.children[i].y = container.children[i]._data_.y;
-      }
-      if (simulation_is_running || simulation.alpha()>0.05){
-        requestAnimationFrame(reposition);
-      }
+  //   reposition();
+  //   function reposition(){
+  //     for(let i=0; i<container.children.length; i++){
+  //       container.children[i].x = container.children[i]._data_.x;
+  //       container.children[i].y = container.children[i]._data_.y;
+  //     }
+  //     if (simulation_is_running || simulation.alpha()>0.05){
+  //       requestAnimationFrame(reposition);
+  //     }
+  //   }
+  // }
+  createSprites(){
+    if(this.props.unique_IDS == null)
+    {
+      throw new Error("Error - props.unique_IDS is null");
     }
+    const tempSpriteList={};
+    for(const entity in this.props.unique_IDS)
+    {
+      const flower = new Flower(textures[this.props.unique_IDS[entity].category]);
+      flower.x = this.props.unique_IDS[entity].position.x;
+      flower.y = this.props.unique_IDS[entity].position.y;
+      //flower.alpha = 0.0;
+      flower.scale.x = 1/7;
+      flower.scale.y = 1/7;
+      tempSpriteList[entity] = flower;
+      container.addChild(flower);
+    }
+    viewBuffer = new ViewBuffer(tempSpriteList);
   }
   componentDidMount() {
     width = this._rootNode.getBoundingClientRect().width;
@@ -134,27 +111,27 @@ class PixiViz extends Component {
     });
     this._rootNode.appendChild(pixiApp.view);
 
-    viewport = new Viewport({
-      center: new PIXI.Point(-width/2, -height/2),
-      passiveWheel: false,
-      stopPropagation: true,
-      divWheel: this._rootNode,
-      screenWidth: width,
-      screenHeight: height,
-      worldWidth: width,
-      worldHeight: height,
-      interaction: pixiApp.renderer.plugins.interaction // the interaction module is important for wheel to work properly when renderer.view is placed or scaled
-    });
-    viewport
-      .clampZoom(Utilities.clampZoomOptions)
-      .drag({pressDrag:true, clampWheel:true})
-      .pinch()
-      .wheel()
-    pixiApp.stage.addChild(viewport);
+    //viewport = new Viewport({
+    //  center: new PIXI.Point(-width/2, -height/2),
+    //  passiveWheel: false,
+    //  stopPropagation: true,
+    //  divWheel: this._rootNode,
+    //  screenWidth: width,
+    //  screenHeight: height,
+    //  worldWidth: width,
+    //  worldHeight: height,
+    //  interaction: pixiApp.renderer.plugins.interaction // the interaction module is important for wheel to work properly when renderer.view is placed or scaled
+    //});
+    //viewport
+    //  .clampZoom(Utilities.clampZoomOptions)
+    //  .drag({pressDrag:true, clampWheel:true})
+    //  .pinch()
+    //  .wheel()
+    //pixiApp.stage.addChild(viewport);
 
     map = new PIXI.Container();
     map.renderable = false;
-    viewport.addChild(map);
+    //viewport.addChild(map);
 
     for (let i=0; i<this.props.mapGeometries.features.length; i++) {
       const region = this.props.mapGeometries.features[i];
@@ -168,16 +145,23 @@ class PixiViz extends Component {
       this_graphics.endFill();
       map.addChild(this_graphics);
     }
+    container = new PIXI.ParticleContainer(Object.keys(this.props.unique_IDS).length, {
+      scale: false,
+      position: true,
+      rotation: false,
+      uvs: false,
+      alpha: false,
+      tint: false,
 
-    container = new PIXI.ParticleContainer(100000);
-    viewport.addChild(container);
+  });
+    //viewport.addChild(container);
+    pixiApp.stage.addChild(container);
     pixiApp.loader.add('sprites', './flowers-textures-1.png');
     pixiApp.loader.onProgress.add((e)=>{
       console.log(e.progress+'%');
     })
     pixiApp.loader.onComplete.add(async ()=>{
       const baseTexture = pixiApp.loader.resources.sprites.texture.baseTexture;
-
       const flowers_textures_info = await d3.json('./flowers-textures-1.json');
       for (let texture_name in flowers_textures_info.frames) {
         const frame = flowers_textures_info.frames[texture_name].frame;
@@ -187,17 +171,20 @@ class PixiViz extends Component {
         );
         textures[texture_name.replace('.png','')] = texture;
       }
-
-      this.updateSprites();
+      this.createSprites();
+      viewBuffer.setDrawList(this.props.data);
+      viewBuffer.drawObjects(container);
     })
     pixiApp.loader.load();
   }
   componentDidUpdate(prevProps){
-    simulation.stop();
     if (prevProps.data !== this.props.data) {
-      this.updateSprites();
+      //update draw list
+      viewBuffer.clearObjects(container);
+      viewBuffer.setDrawList(this.props.data);
+      viewBuffer.drawObjects(container);
     } else if (prevProps.model !== this.props.model) {
-      this.repositionSprites();
+      //animate moveto see ViewBuffer startAnimation()
     }
     // console.log(container);
   }
@@ -214,10 +201,10 @@ class ViewBuffer{
    */
   constructor(Sprites)
   {
-    master=Sprites;
+    this.master=Sprites;
   }
   master={};
-  drawList={};
+  drawList=[];
   animationTime=0;
   timeLeft=0;
   app=null;
@@ -225,16 +212,23 @@ class ViewBuffer{
   setDrawList(drawList){
     this.drawList = drawList;
   }
-  clearObjects(){
-    for(const entity in this.master)
-    {
-      this.master[entity].alpha=0.0;
-    }
+  /**
+   * 
+   * @param {PIXI.ParticleContainer} container 
+   */
+  clearObjects(container){
+      container.removeChildren();
   }
-  drawObjects(){
-    for(const entity in this.drawList)
+    /**
+   * 
+   * @param {PIXI.ParticleContainer} container 
+   */
+  drawObjects(container){
+    for(let i=0; i < this.drawList.length; ++i)
     {
-      this.master[entity].alpha =1.0;
+      this.master[this.drawList[i].id].position.x = this.drawList[i].bunches_x;
+      this.master[this.drawList[i].id].position.y = this.drawList[i].bunches_y;
+      container.addChild(this.master[this.drawList[i].id]);
     }
   }
   /**
@@ -273,8 +267,8 @@ class Flower extends PIXI.Sprite{
   constructor(texture){
     super(texture);
   }
-  nextPoint=new Point();
-  lastPoint=new Point();
+  nextPoint=new PIXI.Point();
+  lastPoint=new PIXI.Point();
   setNextPoint(point){
     this.nextPoint = point;
   }
