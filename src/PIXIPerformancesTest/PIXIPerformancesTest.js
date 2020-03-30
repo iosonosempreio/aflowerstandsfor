@@ -53,73 +53,85 @@ class PIXIPerformancesTest extends Component {
     });
 
     viewport.addChild(container);
-    const textures = [];
-    textures.push(new PIXI.Texture.from("./textures/resized/deceduti_40x40.png"));
-    textures.push(new PIXI.Texture.from("./textures/resized/dimessi_guariti_40x40.png"));
-    textures.push(new PIXI.Texture.from("./textures/resized/isolamento_domiciliare_40x40.png"));
-    textures.push(new PIXI.Texture.from("./textures/resized/ricoverati_con_sintomi_40x40.png"));
-    textures.push(new PIXI.Texture.from("./textures/resized/terapia_intensiva_40x40.png"));
 
-    app.loader.add('sprites', './textures/resized/deceduti_40x40.png')
-      .add('sprites', './textures/resized/dimessi_guariti_40x40.png')
-      .add('sprites', './textures/resized/isolamento_domiciliare_40x40.png')
-      .add('sprites', './textures/resized/ricoverati_con_sintomi_40x40.png')
-      .add('sprites', './textures/resized/terapia_intensiva_40x40.png')
+    const textures = []
+    
+    app.loader.add('sprites', './flowers-textures-1.png');
+    app.loader.onProgress.add((e)=>{
+      console.log(e.progress+'%');
+    })
+    app.loader.onComplete.add(async ()=>{
+      console.log('loader completed')
+      const baseTexture = app.loader.resources.sprites.texture.baseTexture;
 
-    for (let i=0; i<amount; ++i) {
-      const index_Texture = i%5;
-      const sprite = new PIXI.Sprite(textures[4]);
+      const flowers_textures_info = await d3.json('./flowers-textures-1.json');
 
-      sprite.speedX = Math.random();
-		  sprite.speedY = Math.random();
-		
-		  sprite.anchor.x = 0.5;
-      sprite.x = width*Math.random();
-      sprite.y = height*Math.random();
-      sprite.scale.x = 0.125;
-      sprite.scale.y = 0.125;
-
-      container.addChild(sprite);
-    }
-    let updateDelta = Date.now();
-    const update = function () {
-      const delta = updateDelta - Date.now();
-      updateDelta = Date.now();
-
-      for (var i = 0; i < amount; i++) 
-      {
-        var sprite = container.children[i];
-      
-        // sprite.x += sprite.speedX * delta;
-        // sprite.y += sprite.speedY;
-        
-        // if (sprite.x > width)
-        // {
-        //   sprite.speedX *= -1;
-        //   sprite.x = width;
-        // }
-        // else if (sprite.x < 0)
-        // {
-        //   sprite.speedX *= -1;
-        //   sprite.x = 0;
-        // }
-
-        // if (sprite.y > width)
-        // {
-        //   sprite.speedX *= -1;
-        //   sprite.y = width;
-        // }
-        // else if (sprite.y < 0)
-        // {
-        //   sprite.speedX *= -1;
-        //   sprite.y = 0;
-        // }
+      for (let texture_name in flowers_textures_info.frames) {
+        const frame = flowers_textures_info.frames[texture_name].frame;
+        const texture = new PIXI.Texture(
+          baseTexture,
+          new PIXI.Rectangle(frame.x, frame.y, frame.w, frame.h)
+        );
+        textures.push(texture);
       }
 
-      app.renderer.render(viewport);
-      requestAnimationFrame(update)
-    }
-    update();
+      for (let i=0; i<amount; ++i) {
+        const index_texture = i%5;
+        const sprite = new PIXI.Sprite(textures[index_texture]);
+  
+        sprite.speedX = (-0.5 + Math.random());
+        sprite.speedY = (-0.5 + Math.random());
+      
+        sprite.anchor.x = 0.5;
+        sprite.x = width*Math.random();
+        sprite.y = height*Math.random();
+        sprite.scale.x = 1/2/2/2;
+        sprite.scale.y = 1/2/2/2;
+  
+        container.addChild(sprite);
+      }
+
+      let counter = 0;
+      const update = function () {          
+        if (counter < 1000) {
+          counter++;
+          for (var i = 0; i < amount; i++) 
+          {
+            var sprite = container.children[i];
+            sprite.x += sprite.speedX;
+            sprite.y += sprite.speedY;
+            
+            if (sprite.x > width)
+            {
+              sprite.speedX *= -1;
+              sprite.x = width;
+            }
+            else if (sprite.x < 0)
+            {
+              sprite.speedX *= -1;
+              sprite.x = 0;
+            }
+            // y
+            if (sprite.y > height)
+            {
+              sprite.speedY *= -1;
+              sprite.y = height;
+            }
+            else if (sprite.y < 0)
+            {
+              sprite.speedY *= -1;
+              sprite.y = 0;
+            }
+          }
+        };
+        
+        app.renderer.render(viewport);
+        requestAnimationFrame(update);
+      }
+      update();
+
+    })
+    app.loader.load();
   }
   
   _setRef(componentNode) {
