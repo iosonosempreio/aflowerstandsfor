@@ -109,6 +109,14 @@ class PixiViz extends Component {
       resolution: dpr,
       autoResize: true
     });
+    //check if webgl is the renderer
+    if(pixiApp.renderer.type != PIXI.RENDERER_TYPE.WEBGL)
+    {
+      alert("Your browser is not allowing webgl");
+    }
+    else{
+      console.log("Webgl loaded");
+    }
     this._rootNode.appendChild(pixiApp.view);
 
     //viewport = new Viewport({
@@ -145,15 +153,16 @@ class PixiViz extends Component {
       this_graphics.endFill();
       map.addChild(this_graphics);
     }
-    container = new PIXI.ParticleContainer(Object.keys(this.props.unique_IDS).length, {
-      scale: false,
-      position: true,
-      rotation: false,
-      uvs: false,
-      alpha: false,
-      tint: false,
+  //   container = new PIXI.ParticleContainer(Object.keys(this.props.unique_IDS).length, {
+  //     scale: false,
+  //     position: true,
+  //     rotation: false,
+  //     uvs: false,
+  //     alpha: false,
+  //     tint: false,
 
-  });
+  // });
+  container = new PIXI.Container();
     //viewport.addChild(container);
     pixiApp.stage.addChild(container);
     pixiApp.loader.add('sprites', './flowers-textures-1.png');
