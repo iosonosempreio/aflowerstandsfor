@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import * as d3 from 'd3';
 import PixiViz from '../PixiViz/PixiViz';
+import Utilities from '../Utilities/Utilities';
 // import Utilities from '../Utilities/Utilities';
 class VizView extends Component {
   constructor(props) {
@@ -45,6 +46,7 @@ class VizView extends Component {
         const elm = dailyDatasets[i][ii];
         elm.x=Number(elm.origin_x);
         elm.y=Number(elm.origin_y);
+        // elm.category = Utilities.category2english[elm.category];
       }
       data[dates[i]] = dailyDatasets[i];
     }

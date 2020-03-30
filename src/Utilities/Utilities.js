@@ -32,11 +32,23 @@ Utilities.categories = [
     "ricoverati_con_sintomi",
     "isolamento_domiciliare",
     "dimessi_guariti",
-    // "totale_ospedalizzati",
-    // "totale_attualmente_positivi",
-    // "nuovi_attualmente_positivi",
-    // "tamponi"
-  ]
+]
+
+Utilities.categories_en = [
+    "deceased",
+    "intensive_care",
+    "hospitalized",
+    "home_isolation",
+    "recovered"
+]
+
+Utilities.category2english = {
+    "deceduti":"deceased",
+    "terapia_intensiva":"intensive_care",
+    "ricoverati_con_sintomi":"hospitalized",
+    "isolamento_domiciliare":"home_isolation",
+    "dimessi_guariti":"recovered"
+}
 
 Utilities.map = {
     width:768,
