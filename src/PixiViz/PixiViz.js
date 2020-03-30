@@ -119,23 +119,23 @@ class PixiViz extends Component {
     }
     this._rootNode.appendChild(pixiApp.view);
 
-    //viewport = new Viewport({
-    //  center: new PIXI.Point(-width/2, -height/2),
-    //  passiveWheel: false,
-    //  stopPropagation: true,
-    //  divWheel: this._rootNode,
-    //  screenWidth: width,
-    //  screenHeight: height,
-    //  worldWidth: width,
-    //  worldHeight: height,
-    //  interaction: pixiApp.renderer.plugins.interaction // the interaction module is important for wheel to work properly when renderer.view is placed or scaled
-    //});
-    //viewport
-    //  .clampZoom(Utilities.clampZoomOptions)
-    //  .drag({pressDrag:true, clampWheel:true})
-    //  .pinch()
-    //  .wheel()
-    //pixiApp.stage.addChild(viewport);
+    viewport = new Viewport({
+     center: new PIXI.Point(-width/2, -height/2),
+     passiveWheel: false,
+     stopPropagation: true,
+     divWheel: this._rootNode,
+     screenWidth: width,
+     screenHeight: height,
+     worldWidth: width,
+     worldHeight: height,
+     interaction: pixiApp.renderer.plugins.interaction // the interaction module is important for wheel to work properly when renderer.view is placed or scaled
+    });
+    viewport
+     .clampZoom(Utilities.clampZoomOptions)
+     .drag({pressDrag:true, clampWheel:true})
+     .pinch()
+     .wheel()
+    pixiApp.stage.addChild(viewport);
 
     map = new PIXI.Container();
     map.renderable = false;
@@ -163,8 +163,8 @@ class PixiViz extends Component {
 
   // });
   container = new PIXI.Container();
-    //viewport.addChild(container);
-    pixiApp.stage.addChild(container);
+    viewport.addChild(container);
+    // pixiApp.stage.addChild(container);
     pixiApp.loader.add('sprites', './flowers-textures-1.png');
     pixiApp.loader.onProgress.add((e)=>{
       console.log(e.progress+'%');
