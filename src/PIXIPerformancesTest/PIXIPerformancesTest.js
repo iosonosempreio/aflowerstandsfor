@@ -3,7 +3,13 @@ import * as d3 from 'd3';
 import * as PIXI from "pixi.js";
 import { Viewport } from "pixi-viewport";
 
+// https://github.com/gpujs/gpu.js
+import { GPU } from 'gpu.js';
+const gpu = new GPU();
+
 const dpr = window.devicePixelRatio || 1;
+const amount = window.prompt("how many flowers do you want to see?", 200000);;
+let test_with_gpu = window.confirm("Use the GPU for incrementing x and y positions?\nLooks like it causes a loss in performance.");
 
 class PIXIPerformancesTest extends Component {
 
@@ -43,7 +49,6 @@ class PIXIPerformancesTest extends Component {
       .wheel()
     app.stage.addChild(viewport);
 
-    const amount = 200000;
     const container = new PIXI.ParticleContainer(amount, {
       vertices: false,
       position: true,
@@ -75,52 +80,104 @@ class PIXIPerformancesTest extends Component {
         textures.push(texture);
       }
 
+      let flowers_matrix = [
+        // [x, y, speedX, speedY]
+      ];
+
+      const x_flowers = [];
+      const speed_x_flowers = [];
+
       for (let i=0; i<amount; ++i) {
         const index_texture = i%5;
         const sprite = new PIXI.Sprite(textures[index_texture]);
-  
-        sprite.speedX = (-0.5 + Math.random());
-        sprite.speedY = (-0.5 + Math.random());
-      
+
+        const x = width*Math.random();
+        const y = height*Math.random();
+        const speedX = (-0.5 + Math.random());
+        const speedY = (-0.5 + Math.random());
+        
+        sprite.x = x;
+        sprite.y = y;
+        sprite.speedX = speedX;
+        sprite.speedY = speedY;
+
+        const flower = [x,y,speedX,speedY];
+        flowers_matrix.push(flower);
+        
         sprite.anchor.x = 0.5;
-        sprite.x = width*Math.random();
-        sprite.y = height*Math.random();
+        sprite.anchor.y = 0.5;
         sprite.scale.x = 1/2/2/2;
         sprite.scale.y = 1/2/2/2;
   
         container.addChild(sprite);
       }
 
+      // console.log('flowers matrix', flowers_matrix);
+
+      const kernel = gpu.createKernel(function(arr,box) {
+        let speed_x = arr[this.thread.x][2];
+        let new_x = arr[this.thread.x][0] + speed_x;
+        if (new_x < 0) {
+          new_x = 0;
+          speed_x *= -1
+        } else if (new_x > box[0]) {
+          new_x = box[0];
+          speed_x *= -1
+        }
+        
+        let speed_y = arr[this.thread.x][3];
+        let new_y = arr[this.thread.x][1] + speed_y;
+        if (new_y < 0) {
+          new_y = 0;
+          speed_y *= -1
+        } else if (new_y > box[1]) {
+          new_y = box[1];
+          speed_y *= -1
+        }
+
+        return [new_x, new_y, speed_x, speed_y];
+      }).setOutput([amount]);
+
       let counter = 0;
       const update = function () {          
-        if (counter < 1000) {
+        if (counter < 1000 || true) {
           counter++;
+          if (test_with_gpu) {
+            flowers_matrix = kernel(flowers_matrix, [width, height]);
+            // console.log('kernel result',flowers_matrix[0][0]);
+          }
           for (var i = 0; i < amount; i++) 
           {
             var sprite = container.children[i];
-            sprite.x += sprite.speedX;
-            sprite.y += sprite.speedY;
-            
-            if (sprite.x > width)
-            {
-              sprite.speedX *= -1;
-              sprite.x = width;
-            }
-            else if (sprite.x < 0)
-            {
-              sprite.speedX *= -1;
-              sprite.x = 0;
-            }
-            // y
-            if (sprite.y > height)
-            {
-              sprite.speedY *= -1;
-              sprite.y = height;
-            }
-            else if (sprite.y < 0)
-            {
-              sprite.speedY *= -1;
-              sprite.y = 0;
+
+            if (test_with_gpu) {
+              sprite.x = flowers_matrix[i][0];
+              sprite.y = flowers_matrix[i][1];
+            } else {
+              // x
+              sprite.x += sprite.speedX;
+              if (sprite.x > width)
+              {
+                sprite.speedX *= -1;
+                sprite.x = width;
+              }
+              else if (sprite.x < 0)
+              {
+                sprite.speedX *= -1;
+                sprite.x = 0;
+              }
+              // y
+              sprite.y += sprite.speedY;
+              if (sprite.y > height)
+              {
+                sprite.speedY *= -1;
+                sprite.y = height;
+              }
+              else if (sprite.y < 0)
+              {
+                sprite.speedY *= -1;
+                sprite.y = 0;
+              }
             }
           }
         };
