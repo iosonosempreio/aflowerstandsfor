@@ -5,7 +5,6 @@ import './App.css';
 import Test from './Test';
 import PixiViz from './PixiViz';
 import VizView from './VizView';
-import PIXIPerformancesTest from './PIXIPerformancesTest';
 
 function App() {
   return (
@@ -15,9 +14,6 @@ function App() {
           {
             <nav>
               <ul>
-                <li>
-                  <Link to="/performances">Testing PIXIjs performances</Link>
-                </li>
                 <li>
                   <Link to="/viz">Visualization</Link>
                 </li>
@@ -33,9 +29,6 @@ function App() {
         </Route>
         <Route path="/viz">
           <VizView />
-        </Route>
-        <Route path="/performances">
-          <PIXIPerformancesTest />
         </Route>
       </HashRouter>
     </div>

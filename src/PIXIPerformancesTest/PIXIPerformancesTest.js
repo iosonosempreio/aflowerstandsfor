@@ -89,7 +89,7 @@ class PIXIPerformancesTest extends Component {
 
       for (let i=0; i<amount; ++i) {
         const index_texture = i%5;
-        const sprite = new PIXI.Sprite(textures[index_texture]);
+        const sprite = new Flower(textures[index_texture]);
 
         const x = width*Math.random();
         const y = height*Math.random();
@@ -196,6 +196,24 @@ class PIXIPerformancesTest extends Component {
   }
   render() {
     return <div ref={this._setRef.bind(this)}></div>;
+  }
+}
+
+class Flower extends PIXI.Sprite{
+  constructor(texture){
+    super(texture);
+  }
+  nextPoint=new PIXI.Point();
+  lastPoint=new PIXI.Point();
+  setNextPoint(point){
+    this.nextPoint = point;
+  }
+  setLastPoint(){
+    this.lastPoint = this.position;
+  }
+  moveToNextPoint(t){
+    this.position.x = (1-t) * this.lastPoint.x + t * this.nextPoint;
+    this.position.y = (1-t) * this.lastPoint.y + t * this.nextPoint; 
   }
 }
 
