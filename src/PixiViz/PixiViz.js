@@ -9,6 +9,8 @@ let container,
     dpr = window.devicePixelRatio || 1;
 
 let width, height, app;
+let updateQueue=[];
+let prevTime=0;
 // const projection = d3.geoConicEqualArea()
 // const projection = d3.geoTransverseMercator()
 const projection = d3.geoNaturalEarth1()
@@ -109,7 +111,15 @@ class PixiViz extends Component {
       this.state.viewBuffer = new ViewBuffer(tempSpritesList, container);
       this.state.viewBuffer.setDrawList(this.props.data, this.props.model);
       this.state.viewBuffer.drawObjects();
-      const update = function () {          
+      prevTime = Date.now();
+      const update = function () {    
+        const toSeconds=1000;
+        const deltaTime = (Date.now() - prevTime) / toSeconds;
+        prevTime = Date.now();
+        for(let i=0; i < updateQueue.length;++i)
+        {
+          updateQueue[i](deltaTime);
+        }      
         app.renderer.render(viewport);
         requestAnimationFrame(update);
       }
@@ -210,14 +220,13 @@ class ViewBuffer{
       this.master[this.drawList[i].id].setNextPoint(point);
     }
   }
-    app.ticker.add(this.animate,this);
+    updateQueue.push(this.animate.bind(this));
   }
   animate(delta){
-    const FRAMES_PER_SECOND=60;
-    this.timeLeft += delta / FRAMES_PER_SECOND;
+    this.timeLeft += delta;
     if(this.timeLeft >= this.animationTime)
     {
-      this.app.ticker.remove(this.animate, this);
+      updateQueue.pop();
     }
     else
     {
