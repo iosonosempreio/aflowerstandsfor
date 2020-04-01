@@ -355,7 +355,7 @@ request.get(data_url, function (error, response, body) {
                                     regional_flowers(counter);
                                 } else {
                                     dateCounter++
-                                    if (dateCounter<dataByDates.lenth){
+                                    if (dateCounter<dataByDates.length){
                                         doDates(dateCounter);
                                     }
                                 }
