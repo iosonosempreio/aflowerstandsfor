@@ -11,6 +11,9 @@
 # production
 /build
 
+#data
+/public/data/italy
+
 # misc
 .DS_Store
 .env.local
