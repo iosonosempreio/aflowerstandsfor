@@ -155,8 +155,8 @@ class Test extends Component {
     
     svg.call(zoom);
     // svg.call(zoom.transform, d3.zoomIdentity
-    //   .translate(-6547, -1256)
-    //   .scale(14)
+    //   .translate(-265, -178)
+    //   .scale(3)
     // );
 
     const topoWorld = await d3.json('./data/world-50m.json');
@@ -164,6 +164,7 @@ class Test extends Component {
     let world = topojson.feature(topoWorld, topoWorld.objects.countries);
     const italy = world.features.find(d=>d.id==='380') // this is italy
     projection.fitExtent([[5,5],[768-10,1024-10]], italy)
+    // projection.scale(10000)
     country = g.append('g').attr('class','countries').selectAll('.country');
 
     country = country.data(world.features);
@@ -183,9 +184,13 @@ class Test extends Component {
       .key(d=>d.data)
       .entries(csv);
 
-    let selected_day = '2020-03-01T17:00:00';
-    selected_day = '2020-03-10T18:00:00';
+    let selected_day
+    selected_day = '2020-03-01T17:00:00';
+    // selected_day = '2020-03-10T18:00:00';
     // selected_day = '2020-02-24T18:00:00';
+    // selected_day = '2020-03-20T17:00:00';
+    // selected_day = '2020-03-29T17:00:00';
+    // selected_day = '2020-03-31T17:00:00';
 
     dataByDates = dataByDates.filter(d=>d.key===selected_day)
 
@@ -250,14 +255,21 @@ class Test extends Component {
           for (let i=0; i<region[category]; ++i){
             const o = { id: region.code.toString()+''+categories_codes[category]+''+i.toString().padStart(6,"0") };
             flowers[date.key].push(o);
-            if (i>0){
-              for (let ii=0; ii<=i; ++ii){
+            if (i===0) {
+              for (let ii=1; ii<Number(categories_codes[category]); ++ii){
                 const link = {
-                  source: region.code.toString()+''+categories_codes[category]+''+ii.toString().padStart(6,"0"),
+                  source: region.code.toString()+''+ii+''+'0'.toString().padStart(6,"0"),
                   target: o.id
                 }
                 links[date.key].push(link);
               }
+            }
+            else {
+              const link = {
+                source: region.code.toString()+''+categories_codes[category]+''+'0'.toString().padStart(6,"0"),
+                target: o.id
+              }
+              links[date.key].push(link);
             }
           }
         })
@@ -275,10 +287,10 @@ class Test extends Component {
     region = region.data(regions[selected_day], d=>d.code)
       .enter().append('circle')
         .attr('class',d=>d.denominazione_regione)
-        .attr('fill','none')
+        .attr('fill','white')
         .attr('stroke','#cccccc')
         .classed('region',true)
-        .attr('r', d=>radius(d.total));
+        .attr('r', d=>radius(+d.total));
 
     const simulation_regions = d3.forceSimulation(regions[selected_day])
       .force('x', d3.forceX(d=>d.x))
@@ -292,57 +304,73 @@ class Test extends Component {
         flowers_simulations(selected_day);
       })
       .alpha(1)
-      .alphaDecay(0.2)
       .restart();
     
     let g_flowers = g.append('g').classed('flowers', true);
 
     function flowers_simulations(date) {
       regions[date]
-      .filter(d=>d.denominazione_regione==='Veneto')
+      .filter(d=>d.denominazione_regione==='Lombardia')
       .forEach(region=>{
         let regional_flowers = flowers[date].filter(d=>d.id.toString().substring(0,2)===region.code);
+        console.log(regional_flowers.length);
         // .filter(d=>d.denominazione_regione==='Lombardia')
         shuffle(regional_flowers);
         const regional_links = links[date].filter(d=>d.source.toString().substring(0,2)===region.code);
         // console.log(regional_flowers)
         // console.log(regional_links)
+
         const regional_simulation = d3.forceSimulation(regional_flowers)
-          .force('links', d3.forceLink([]).id(d=>d.id).distance(0.9))
-          .force('x', d3.forceX(0).strength(0.05))
-          .force('y', d3.forceY(0).strength(0.05))
-          .force('charge', d3.forceManyBody().strength(-0.01))
-          .force('collision', d3.forceCollide(0.9).iterations(8))
+          .force('center', d3.forceCenter(0,0))
+          .force('links', d3.forceLink([]).id(d=>d.id).distance(0))
+          .force('collision', d3.forceCollide(0.45))
+          .force('x', d3.forceX().strength(.09))
+          .force('y', d3.forceY().strength(.09))
           .on('tick',()=>{
+            document.title = regional_simulation.alpha();
             flower
               .attr('cx',d=>d.x)
               .attr('cy',d=>d.y);
           })
+          .alpha(1)
           .on('end',()=>{
             console.log(region.denominazione_regione, 'simulation ended')
+            flower
+                  .attr('cx',d=>d.x)
+                  .attr('cy',d=>d.y);
             regional_flowers.forEach(f=>{
               f.bunches_x = f.x;
               f.bunches_y = f.y;
             })
             regional_simulation.force('links').links(regional_links);
-            regional_simulation.alpha(1)
+            regional_simulation
+              .alpha(1)
               .restart()
+              .on('tick',()=>{
+                document.title = regional_simulation.alpha();
+                flower
+                  .attr('cx',d=>d.x)
+                  .attr('cy',d=>d.y);
+              })
               .on('end',()=>{
+                document.title = 'simulation ended';
+                flower
+                  .attr('cx',d=>d.x)
+                  .attr('cy',d=>d.y);
                 regional_flowers.forEach(f=>{
                   f.clusters_x = f.x;
                   f.clusters_y = f.y;
                 });
                 console.log(region.denominazione_regione, 'simulation clusters ended')
               });
-          })
-          .alpha(1)
-          .restart();
+          });
         
         let flower = g_flowers.append('g').attr('transform','translate('+region.x+','+region.y+')').attr('class',region.code).selectAll('.flower');
         flower = flower.data(regional_flowers, d=>d.id).enter().append('circle')
           .classed('flower', true)
-          .attr('r', 1)
+          .attr('r', 0.5)
           .attr('fill', d=>color(d.id.toString().substring(2,4)))
+          .style('opacity',.7)
           .attr('cx', region.x)
           .attr('cy', region.y);
       })
@@ -501,7 +529,7 @@ class Test extends Component {
     // })
   }
   render() {
-    return <svg ref={this._setRef.bind(this)} style={{ width:'100vw', height:'100vh', backgroundColor:'#eef3bd'}}></svg>;
+    return <svg ref={this._setRef.bind(this)} style={{ width:'768px', height:'1024px', backgroundColor:'#eef3bd'}}></svg>;
   }
 }
 
