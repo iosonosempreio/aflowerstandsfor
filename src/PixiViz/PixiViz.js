@@ -142,7 +142,7 @@ class PixiViz extends Component {
     // console.log(container);
   }
   render() {
-    return <div style={{width:'100vw',height:'calc(100vh - 144px)'}} ref={this._setRef.bind(this)}></div>;
+    return <div style={{width:'100vw',height:'100vh'}} ref={this._setRef.bind(this)}></div>;
   }
 }
 

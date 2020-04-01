@@ -52,7 +52,6 @@ class VizView extends Component {
           this.state.unique_IDS[elm.id] = {category: elm.category, position: {x:elm[initialModel+"_x"], y:elm[initialModel+"_y"]}};
         }
       }
-      console.log(Object.keys(this.state.unique_IDS).length);
       data[dates[i]] = dailyDatasets[i];
     }
     
@@ -64,19 +63,6 @@ class VizView extends Component {
   }
   render() {
     return  <div ref={this._setRef.bind(this)}>
-              <header>
-                header
-                <p>
-                  <input type="button" name="prev-date" value="⏪" onClick={ ()=>this.changeDate(this.state.current_date_index-1) } />
-                  <input type="button" name="prev-date" value="▶️" onClick={ ()=>this.setState({play:!this.state.play}, this.changeDate(this.state.current_date_index+1)) } />
-                  <input type="button" name="prev-date" value="⏩" onClick={ ()=>this.changeDate(this.state.current_date_index+1) } />
-                  <input type="button" name="bands" value="🖼" onClick={ ()=>this.changeModel('stripes') } />
-                  <input type="button" name="bunch" value="💐" onClick={ ()=>this.changeModel('bunches') } />
-                  <input type="button" name="clusters" value="🎯" onClick={ ()=>this.changeModel('clusters') } />
-                  {this.state.current_date}
-                </p>
-              </header>
-              
               {this.state.data &&
                 <PixiViz
                   data={this.state.data_day.reverse()}
@@ -88,9 +74,17 @@ class VizView extends Component {
                   unique_IDS = {this.state.unique_IDS}
                 />
               }
-              <footer>
-                footer
-              </footer>
+              <header style={{position:'fixed',top:0}}>
+                <p>
+                  <input type="button" name="prev-date" value="⏪" onClick={ ()=>this.changeDate(this.state.current_date_index-1) } />
+                  <input type="button" name="prev-date" value="▶️" onClick={ ()=>this.setState({play:!this.state.play}, this.changeDate(this.state.current_date_index+1)) } />
+                  <input type="button" name="prev-date" value="⏩" onClick={ ()=>this.changeDate(this.state.current_date_index+1) } />
+                  <input type="button" name="bands" value="🖼" onClick={ ()=>this.changeModel('stripes') } />
+                  <input type="button" name="bunch" value="💐" onClick={ ()=>this.changeModel('bunches') } />
+                  <input type="button" name="clusters" value="🎯" onClick={ ()=>this.changeModel('clusters') } />
+                  {this.state.current_date}
+                </p>
+              </header>
             </div>;
   }
 }
