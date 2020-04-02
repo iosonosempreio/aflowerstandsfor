@@ -78,7 +78,7 @@ class PixiViz extends Component {
 
     const textures = {};
     
-    app.loader.add('sprites', './flowers-textures-1.png');
+    app.loader.add('sprites', './flowers-textures-ita-1.png');
     app.loader.onProgress.add((e)=>{
       console.log(e.progress+'%');
     })
@@ -86,7 +86,7 @@ class PixiViz extends Component {
       console.log('loader completed')
       const baseTexture = app.loader.resources.sprites.texture.baseTexture;
 
-      const flowers_textures_info = await d3.json('./flowers-textures-1.json');
+      const flowers_textures_info = await d3.json('./flowers-textures-ita-1.json');
 
       for (let texture_name in flowers_textures_info.frames) {
         const frame = flowers_textures_info.frames[texture_name].frame;
