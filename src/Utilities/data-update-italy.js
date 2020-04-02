@@ -174,14 +174,13 @@ request.get(data_url, function (error, response, body) {
 
         let selected_day;
         
-        if (script_arguments.dates==='latest') {
-            selected_day = dates[dates.length-1];
+        if (script_arguments.date) {
+            selected_day = script_arguments.date;
         }
 
         if (selected_day) {
             dataByDates = dataByDates.filter(d=>d.key===selected_day);
         }
-
         console.log('Dates to go:', dataByDates.map(d=>d.key));
 
         let flowers = [];

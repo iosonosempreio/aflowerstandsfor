@@ -74,7 +74,6 @@ class Visualization extends Component {
       interaction: app.renderer.plugins.interaction
     });
     viewport
-      // .clampZoom(Utilities.clampZoomOptions)
       .drag({pressDrag:true, clampWheel:true})
       .pinch()
       .wheel();
@@ -99,6 +98,7 @@ class Visualization extends Component {
     });
     
     flowersContainer = new PIXI.ParticleContainer(unique_IDS.length, {
+      scale:true,
       vertices: false,
       position: true,
       rotation: false,
@@ -119,16 +119,18 @@ class Visualization extends Component {
           sprite.y = 50;
           sprite.anchor.x = 0.5;
           sprite.anchor.y = 0.5;
-          sprite.scale.x = 1/40 * 8;
-          sprite.scale.y = 1/40 * 8;
+          sprite.scaleValues = [1/textures[category].orig.width * 10,1/textures[category].orig.height * 10]
+          sprite.scale.x = sprite.scaleValues[0];
+          sprite.scale.y = sprite.scaleValues[1];
           tempSpritesList[flower_id]=sprite;
         }
 
         const viewBuffer = new ViewBuffer(tempSpritesList, flowersContainer);
         this.setState({day:available_dates[0], day_index:0, viewBuffer:viewBuffer});
+        viewport.on('moved',()=>{viewBuffer.rescaleObjects(viewport.transform.scale._x)})
 
         prevTime = Date.now();
-        const update = function () {    
+        const update = function () {
           const toSeconds=1000;
           const deltaTime = (Date.now() - prevTime) / toSeconds;
           prevTime = Date.now();
@@ -147,17 +149,13 @@ class Visualization extends Component {
     console.log('did update')
     if (prevState.day_index !== this.state.day_index) {
       //update draw list
-      console.log('day')
       this.state.viewBuffer.clearObjects();
       this.state.viewBuffer.setDrawList(this.props.data[available_dates[this.state.day_index]], this.state.model);
       this.state.viewBuffer.drawObjects();
     } else if (prevState.model !== this.state.model) {
       //animate moveto see ViewBuffer startAnimation()
-      console.log('animation')
       this.state.viewBuffer.model = this.state.model;
       this.state.viewBuffer.startAnimation(5, app);
-    } else {
-      console.log('none of above')
     }
     // if (this.state.model === 'stripes') {
     //   geography.renderable = false;
@@ -239,6 +237,14 @@ class ViewBuffer{
       this.container.addChild(this.master[this.drawList[i].id]);
     }
   }
+  rescaleObjects(k){
+    for(let i=0; i < this.drawList.length; ++i)
+    {
+      const flower = this.master[this.drawList[i].id];
+      flower.scale.x = flower.scaleValues[0]/k;
+      flower.scale.y = flower.scaleValues[1]/k;
+    }
+  }
   /**
    * 
    * @param {Number} animationTime - in seconds 
@@ -296,6 +302,7 @@ class Flower extends PIXI.Sprite{
   }
   nextPoint=new PIXI.Point();
   lastPoint=new PIXI.Point();
+  originalScale=null;
   setNextPoint(point){
     this.nextPoint = point;
   }
