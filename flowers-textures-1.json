@@ -5,7 +5,7 @@
 		"scale": "1"
 	},
 	"frames": {
-		"terapia_intensiva.png":
+		"recovered.png":
 		{
 			"frame": {"x":80,"y":0,"w":40,"h":40},
 			"rotated": false,
@@ -13,7 +13,7 @@
 			"spriteSourceSize": {"x":0,"y":0,"w":40,"h":40},
 			"sourceSize": {"w":40,"h":40}
 		},
-		"ricoverati_con_sintomi.png":
+		"intensive_cares.png":
 		{
 			"frame": {"x":40,"y":40,"w":40,"h":40},
 			"rotated": false,
@@ -21,7 +21,7 @@
 			"spriteSourceSize": {"x":0,"y":0,"w":40,"h":40},
 			"sourceSize": {"w":40,"h":40}
 		},
-		"isolamento_domiciliare.png":
+		"hospitalized.png":
 		{
 			"frame": {"x":0,"y":40,"w":40,"h":40},
 			"rotated": false,
@@ -29,7 +29,7 @@
 			"spriteSourceSize": {"x":0,"y":0,"w":40,"h":40},
 			"sourceSize": {"w":40,"h":40}
 		},
-		"dimessi_guariti.png":
+		"home_isolation.png":
 		{
 			"frame": {"x":40,"y":0,"w":40,"h":40},
 			"rotated": false,
@@ -37,7 +37,7 @@
 			"spriteSourceSize": {"x":0,"y":0,"w":40,"h":40},
 			"sourceSize": {"w":40,"h":40}
 		},
-		"deceduti.png":
+		"deceased.png":
 		{
 			"frame": {"x":0,"y":0,"w":40,"h":40},
 			"rotated": false,
