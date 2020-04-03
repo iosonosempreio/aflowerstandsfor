@@ -14,8 +14,8 @@ if (process.argv.length > 2) {
 
 console.log('This scripts updates data according to official Italian releases.');
 
-// let data_url = 'https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-regioni/dpc-covid19-ita-regioni.csv';
-let data_url = 'http://localhost:3000/data/italy/dpc-covid19-ita-regioni.csv';
+let data_url = 'https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-regioni/dpc-covid19-ita-regioni.csv';
+// let data_url = 'http://localhost:3000/data/italy/dpc-covid19-ita-regioni.csv';
 
 let radius = d3.scalePow().exponent(0.5);
 const simulation = d3.forceSimulation().stop();
