@@ -12,7 +12,7 @@ class Italy extends Component {
   }
   async componentDidMount(){
     const fetched = await Promise.all([
-      d3.csv('./data/italy/datasets_light.csv'),
+      d3.csv('./data/italy/datasets.csv'),
       d3.json('./data/world-50m.json')
     ]);
     const datasets=await Promise.all(fetched[0].map(d=>d3.csv('./data/italy/'+d.file_name)));
