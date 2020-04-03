@@ -12,21 +12,24 @@ class Italy extends Component {
   }
   async componentDidMount(){
     const fetched = await Promise.all([
-      d3.csv('./data/italy/datasets.csv'),
+      d3.csv('./data/italy/datasets_light.csv'),
       d3.json('./data/world-50m.json')
     ]);
-    const datasets = await Promise.all(fetched[0].map(d=>d3.csv('./data/italy/'+d.file_name)));
-    const data = {};
+    const datasets=await Promise.all(fetched[0].map(d=>d3.csv('./data/italy/'+d.file_name)));
+    const datasets_regions=await Promise.all(fetched[0].map(d=>d3.csv('./data/italy/'+d.file_name.replace('.csv','-regions.csv'))));
+    const data={};
+    const regionsInfo={};
     fetched[0].map(d=>d.date).forEach((date,i)=>{
       data[date] = datasets[i];
+      regionsInfo[date] = datasets_regions[i];
     })
     const topojson = fetched[1];
-    this.setState({data:data,topojson:topojson});
+    this.setState({data:data,regionsInfo:regionsInfo,topojson:topojson});
   }
   render() {
     return <div className="italy" ref={this._setRef.bind(this)}>
       {!this.state.data && <div>Loading data...</div>}
-      {this.state.data && <Visualization data={this.state.data} topojson={this.state.topojson} country_info={country_info}/>}
+      {this.state.data && <Visualization data={this.state.data} regionsInfo={this.state.regionsInfo} topojson={this.state.topojson} country_info={country_info}/>}
     </div>;
   }
 }

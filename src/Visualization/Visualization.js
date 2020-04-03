@@ -5,7 +5,7 @@ import * as topojson from 'topojson';
 import { Viewport } from "pixi-viewport";
 import Utilities from '../Utilities/Utilities';
 
-let app, viewport, flowersContainer, geography, textures,
+let app, viewport, flowersContainer, geography, regionsInfo, textures,
     dpr=window.devicePixelRatio || 1,
     width=window.innerWidth,
     height=window.innerHeight,
@@ -74,6 +74,7 @@ class Visualization extends Component {
       interaction: app.renderer.plugins.interaction
     });
     viewport
+      .clampZoom({minScale:0.75,maxScale:5})
       .drag({pressDrag:true, clampWheel:true})
       .pinch()
       .wheel();
@@ -96,7 +97,9 @@ class Visualization extends Component {
       this_graphic.endFill();
       geography.addChild(this_graphic);
     });
-    
+    regionsInfo = new PIXI.Container();
+    regionsInfo.renderable=false;
+    viewport.addChild(regionsInfo);
     flowersContainer = new PIXI.ParticleContainer(unique_IDS.length, {
       scale:true,
       vertices: false,
@@ -105,6 +108,7 @@ class Visualization extends Component {
       uvs: false,
       tint: false
     });
+    // flowersContainer.renderable=false;
     viewport.addChild(flowersContainer);
 
     app.loader.add('flowersTextures','./flowers-textures-1.json');
@@ -119,15 +123,17 @@ class Visualization extends Component {
           sprite.y = 50;
           sprite.anchor.x = 0.5;
           sprite.anchor.y = 0.5;
-          sprite.scaleValues = [1/textures[category].orig.width * 10,1/textures[category].orig.height * 10]
+          const pixel_size = 10;
+          sprite.scaleValues = [1/textures[category].orig.width * pixel_size,1/textures[category].orig.height * pixel_size]
           sprite.scale.x = sprite.scaleValues[0];
           sprite.scale.y = sprite.scaleValues[1];
           tempSpritesList[flower_id]=sprite;
         }
 
         const viewBuffer = new ViewBuffer(tempSpritesList, flowersContainer);
-        this.setState({day:available_dates[0], day_index:0, viewBuffer:viewBuffer});
-        viewport.on('moved',()=>{viewBuffer.rescaleObjects(viewport.transform.scale._x)})
+        const index = available_dates.length-1
+        this.setState({day:available_dates[index], day_index:index, viewBuffer:viewBuffer});
+        viewport.on('zoomed',()=>{viewBuffer.rescaleObjects(viewport.transform.scale._x)})
 
         prevTime = Date.now();
         const update = function () {
@@ -146,9 +152,9 @@ class Visualization extends Component {
     app.loader.load();
   }
   componentDidUpdate(prevProps, prevState){
-    console.log('did update')
     if (prevState.day_index !== this.state.day_index) {
       //update draw list
+      this.state.viewBuffer.drawRegionsInfo(this.props.regionsInfo[available_dates[this.state.day_index]]);
       this.state.viewBuffer.clearObjects();
       this.state.viewBuffer.setDrawList(this.props.data[available_dates[this.state.day_index]], this.state.model);
       this.state.viewBuffer.drawObjects();
@@ -178,9 +184,9 @@ class Visualization extends Component {
     this.setState({model:newModel});
   }
   render() {
-    return <div style={{width:'100vw',height:'100vh'}} ref={this._setRef.bind(this)}>
+    return <div style={{width:'100%',height:'100%'}} ref={this._setRef.bind(this)}>
       <div id="visualization"></div>
-      <div id="controls" style={{position:'fixed', bottom:0}}>
+      <div id="controls" style={{position:'fixed', top:0}}>
         <p>
           <input type="button" name="prev-date" value="previous day" onClick={ ()=>this.changeDate(this.state.day_index-1) } />
           {this.state.day && <span>{this.state.day}</span>}
@@ -221,11 +227,12 @@ class ViewBuffer{
   }
   drawObjects(){
     if(this.model === "stripes")
-    {
+    { 
+      const margin = 20;
       for(let i=0; i < this.drawList.length; ++i)
       {
-        this.master[this.drawList[i].id].position.x = Number(this.drawList[i][this.model+"_x"]) * width;
-        this.master[this.drawList[i].id].position.y = Number(this.drawList[i][this.model+"_y"]) * height;
+        this.master[this.drawList[i].id].position.x = Number(this.drawList[i][this.model+"_x"]) * (width-margin*2)+margin;
+        this.master[this.drawList[i].id].position.y = Number(this.drawList[i][this.model+"_y"]) * (height-margin*2)+margin;
         this.container.addChild(this.master[this.drawList[i].id]);
       }
       return;
@@ -245,23 +252,36 @@ class ViewBuffer{
       flower.scale.y = flower.scaleValues[1]/k;
     }
   }
+  drawRegionsInfo(regions){
+    regionsInfo.removeChildren();
+    regions.forEach(region=>{
+      const this_graphic = new PIXI.Graphics();
+      this_graphic.lineStyle(1, 0xff0000, 0.5);
+      this_graphic.drawCircle(Number(region.x),Number(region.y),Number(region.r))
+      regionsInfo.addChild(this_graphic);
+      const text = new PIXI.Text(region.denominazione_regione+'-'+region.total,{fontFamily : 'Arial', fontSize: 10, fill : 0xff1010, align : 'left'});
+      text.x=Number(region.x);
+      text.y=Number(region.y);
+      regionsInfo.addChild(text);
+    })
+  }
   /**
    * 
    * @param {Number} animationTime - in seconds 
    * @param {PIXI.Application} app 
    */
   startAnimation(animationTime, app){
-    console.log('animation')
     this.animationTime = animationTime;
     this.timeLeft = 0;
     this.app = app;
     if(this.model==="stripes")
-    {
+    { 
+      const margin = 20;
       for(let i=0; i < this.drawList.length; ++i)
       {
         let point = new PIXI.Point();
-        point.x = Number(this.drawList[i][this.model+"_x"]) * width;
-        point.y = Number(this.drawList[i][this.model+"_y"]) * height;
+        point.x = Number(this.drawList[i][this.model+"_x"]) * (width-margin*2)+margin;
+        point.y = Number(this.drawList[i][this.model+"_y"]) * (height-margin*2)+margin;
         this.master[this.drawList[i].id].setLastPoint();
         this.master[this.drawList[i].id].setNextPoint(point);
       }

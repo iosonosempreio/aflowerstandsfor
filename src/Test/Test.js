@@ -155,8 +155,8 @@ class Test extends Component {
     
     svg.call(zoom);
     // svg.call(zoom.transform, d3.zoomIdentity
-    //   .translate(-265, -178)
-    //   .scale(3)
+    //   .translate(-1170, -1272)
+    //   .scale(7)
     // );
 
     const topoWorld = await d3.json('./data/world-50m.json');
@@ -178,6 +178,9 @@ class Test extends Component {
         .attr('stroke-width','0.5px');
 
     const csv = await d3.csv(data_url);
+    radius.range([0,70]).domain([0,d3.max(csv, d=>Number(d.totale_casi))]);
+
+    // radius.range([0,35]).domain([0,d3.max(regions[selected_day], d=>d.total)]);
     let flowers = {};
     let links = {};
     let dataByDates = d3.nest()
@@ -185,9 +188,8 @@ class Test extends Component {
       .entries(csv);
 
     let selected_day
-    selected_day = '2020-03-01T17:00:00';
-    // selected_day = '2020-03-10T18:00:00';
-    // selected_day = '2020-02-24T18:00:00';
+    selected_day = '2020-02-24T18:00:00';
+    selected_day = '2020-03-10T18:00:00';
     // selected_day = '2020-03-20T17:00:00';
     // selected_day = '2020-03-29T17:00:00';
     // selected_day = '2020-03-31T17:00:00';
@@ -195,6 +197,7 @@ class Test extends Component {
     dataByDates = dataByDates.filter(d=>d.key===selected_day)
 
     dataByDates.forEach(date=>{
+      console.log(date)
       flowers[date.key] = [];
       links[date.key] = [];
       regions[date.key] = [];
@@ -234,6 +237,7 @@ class Test extends Component {
         region.total = region.totale_casi;
         region.center_x = regions_coordinates.find(d=>d.region_name === region.denominazione_regione).lon;
         region.center_y = regions_coordinates.find(d=>d.region_name === region.denominazione_regione).lat;
+        region.r = radius(Number(region.total));
         const point = projection([region.center_x,region.center_y]);
         region.x = point[0];
         region.y = point[1];
@@ -280,9 +284,6 @@ class Test extends Component {
       // };
     });
 
-    
-
-    radius.range([0,35]).domain([0,d3.max(regions[selected_day], d=>d.total)]);
     region = g.selectAll('.region');
     region = region.data(regions[selected_day], d=>d.code)
       .enter().append('circle')
@@ -313,6 +314,7 @@ class Test extends Component {
       .filter(d=>d.denominazione_regione==='Lombardia')
       .forEach(region=>{
         let regional_flowers = flowers[date].filter(d=>d.id.toString().substring(0,2)===region.code);
+        // regional_flowers = regional_flowers.slice(0,30);
         console.log(regional_flowers.length);
         // .filter(d=>d.denominazione_regione==='Lombardia')
         shuffle(regional_flowers);
@@ -322,21 +324,38 @@ class Test extends Component {
 
         const regional_simulation = d3.forceSimulation(regional_flowers)
           .force('center', d3.forceCenter(0,0))
-          .force('links', d3.forceLink([]).id(d=>d.id).distance(0))
-          .force('collision', d3.forceCollide(0.45))
-          .force('x', d3.forceX().strength(.09))
-          .force('y', d3.forceY().strength(.09))
+          .force('links', d3.forceLink([]).id(d=>d.id).distance(0).strength(0.01).iterations(8))
+          .force('charge', d3.forceManyBody().strength(-0.01))
+          .force('collision', d3.forceCollide(0.35).strength(1))
+          .force('x', d3.forceX())
+          .force('y', d3.forceY())
           .on('tick',()=>{
             document.title = regional_simulation.alpha();
-            flower
+            flower.each((d,i)=>{
+                const r2 = Math.hypot(d.x,d.y);
+                const r = regions[selected_day].find(r=>r.code===d.id.substring(0,2)).r
+                if (r2>r){
+                  let sine = d.y/r2;
+                  let cosi = d.x/r2;
+                  let tangent = d.y / d.x;
+                  let angle2 = Math.atan(tangent);
+                  let newX = Math.cos(angle2) * r;
+                  let newY = Math.sin(angle2) * r;
+                  if (cosi<0){
+                    newX*=-1;
+                    newY*=-1;
+                  }
+                  d.x = newX;
+                  d.y = newY;
+                }
+              })
               .attr('cx',d=>d.x)
               .attr('cy',d=>d.y);
           })
-          .alpha(1)
+          .alphaMin(0.01)
           .on('end',()=>{
             console.log(region.denominazione_regione, 'simulation ended')
-            flower
-                  .attr('cx',d=>d.x)
+            flower.attr('cx',d=>d.x)
                   .attr('cy',d=>d.y);
             regional_flowers.forEach(f=>{
               f.bunches_x = f.x;
@@ -346,16 +365,15 @@ class Test extends Component {
             regional_simulation
               .alpha(1)
               .restart()
-              .on('tick',()=>{
-                document.title = regional_simulation.alpha();
-                flower
-                  .attr('cx',d=>d.x)
-                  .attr('cy',d=>d.y);
-              })
+              // .on('tick',()=>{
+              //   document.title = regional_simulation.alpha();
+              //   flower
+              //     .attr('cx',d=>d.x)
+              //     .attr('cy',d=>d.y);
+              // })
               .on('end',()=>{
                 document.title = 'simulation ended';
-                flower
-                  .attr('cx',d=>d.x)
+                flower.attr('cx',d=>d.x)
                   .attr('cy',d=>d.y);
                 regional_flowers.forEach(f=>{
                   f.clusters_x = f.x;

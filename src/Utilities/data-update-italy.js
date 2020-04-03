@@ -14,10 +14,10 @@ if (process.argv.length > 2) {
 
 console.log('This scripts updates data according to official Italian releases.');
 
-let data_url = 'https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-regioni/dpc-covid19-ita-regioni.csv';
+// let data_url = 'https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-regioni/dpc-covid19-ita-regioni.csv';
+let data_url = 'http://localhost:3000/data/italy/dpc-covid19-ita-regioni.csv';
 
 let radius = d3.scalePow().exponent(0.5);
-let color = d3.scaleOrdinal(d3.schemeCategory10);
 const simulation = d3.forceSimulation().stop();
 
 // let countries = [], country,
@@ -165,22 +165,25 @@ request.get(data_url, function (error, response, body) {
         let world = topojson.feature(topoWorld, topoWorld.objects.countries);
         const italy = world.features.find(d=>d.id==='380') // this is italy
         projection.fitExtent([[5,5],[768-10,1024-10]], italy);
+        const parsedCsv = d3.csvParse(body);
+        radius.range([20,70]).domain([0,d3.max(parsedCsv, d=>Number(d.totale_casi))]);
 
         let dataByDates = d3.nest()
             .key(d=>d.data)
-            .entries(d3.csvParse(body));
+            .entries(parsedCsv);
 
-        let dates = dataByDates.map(d=>d.key);
-
-        let selected_day;
+        // let dates = dataByDates.map(d=>d.key);
         
         if (script_arguments.date) {
-            selected_day = script_arguments.date;
+            if (script_arguments.date==='all'){
+                dataByDates = dataByDates
+            } else {
+                dataByDates = dataByDates.filter(d=>d.key===script_arguments.date);
+            }
+        } else {
+            dataByDates = dataByDates.filter(d=>d.key===dataByDates[dataByDates.length-1].key)
         }
 
-        if (selected_day) {
-            dataByDates = dataByDates.filter(d=>d.key===selected_day);
-        }
         console.log('Dates to go:', dataByDates.map(d=>d.key));
 
         let flowers = [];
@@ -224,11 +227,13 @@ request.get(data_url, function (error, response, body) {
             data_regions.forEach(region=>{
                 region.code = region.codice_regione;
                 region.total = region.totale_casi;
+                region.r=radius(Number(region.total));
                 region.lon = regions_coordinates.find(d=>d.region_name === region.denominazione_regione).lon;
                 region.lat = regions_coordinates.find(d=>d.region_name === region.denominazione_regione).lat;
                 const point = projection([region.lon,region.lat]);
-                region.x = point[0];
-                region.y = point[1];
+                region.center_x = point[0];
+                region.center_y = point[1];
+                region.r = radius(Number(region.total));
                 delete region.data;
                 delete region.codice_regione;
                 delete region.stato;
@@ -244,8 +249,7 @@ request.get(data_url, function (error, response, body) {
                 regions.push(region);
             });
 
-            console.log('Simulation is running');
-            radius.range([0,35]).domain([0,d3.max(regions, d=>d.total)]);
+            let flowers_of_today = [];
             let counter = 0;        
             function regional_flowers(index){
                 flowers=[];
@@ -255,7 +259,6 @@ request.get(data_url, function (error, response, body) {
                 console.log(region.denominazione_regione + ' - total cases: ' + region.total);
                 Object.keys(categories).forEach(category=>{
                     const increment = Math.ceil(region.total/1000); // create a link every x
-                    // console.log('total '+category+': '+region[category]);
                     for (let i=0; i<region[category]; ++i){
                         const o = { id: region.code.toString()+''+categories_codes[category]+''+i.toString().padStart(6,"0") };
                         flowers.push(o);
@@ -282,77 +285,96 @@ request.get(data_url, function (error, response, body) {
                 // console.log('Amount of flowers: ' + flowers.length + '. Amount of links: ' + links.length);
 
                 shuffle(flowers);
-
                 console.log('First simulation');
+                const r = region.r
                 const regional_simulation = d3.forceSimulation(flowers)
-                    .force('center', d3.forceCenter(region.x,region.y))
-                    .force('links', d3.forceLink([]).id(d=>d.id).distance(0))
-                    .force('collision', d3.forceCollide(0.45))
-                    .force('x', d3.forceX(region.x).strength(.09))
-                    .force('y', d3.forceY(region.y).strength(.09))
-                    .alpha(1)
+                    .force('center', d3.forceCenter(0,0))
+                    .force('links', d3.forceLink([]).id(d=>d.id).distance(0).strength(0.2).iterations(4))
+                    .force('charge', d3.forceManyBody().strength(-0.03))
+                    .force('collision', d3.forceCollide(0.35).strength(1))
+                    .force('x', d3.forceX())
+                    .force('y', d3.forceY())
+                    .on('tick',()=>{
+                        flowers.forEach((d,i)=>{
+                            const r2 = Math.hypot(d.x,d.y);
+                            if (r2>r){
+                                // let sine = d.y/r2;
+                                let cosi = d.x/r2;
+                                let tangent = d.y/d.x;
+                                let angle2 = Math.atan(tangent);
+                                let newX = Math.cos(angle2)*r;
+                                let newY = Math.sin(angle2)*r;
+                                if (cosi<0){
+                                newX*=-1;
+                                newY*=-1;
+                                }
+                                d.x = newX;
+                                d.y = newY;
+                            }
+                        })
+                    })
+                    .alpha(region.total>0?1:0)
+                    .alphaDecay(0.05)
                     .on('end',()=>{
                         console.log('Second simulation');
                         flowers.forEach(f=>{
-                            f.bunches_x = f.x;
-                            f.bunches_y = f.y;
+                            f.bunches_x = region.x + f.x;
+                            f.bunches_y = region.y + f.y;
                         })
                         regional_simulation.force('links').links(links);
-                        regional_simulation.alpha(1).restart()
+                        regional_simulation.alpha(region.total>0?1:0).restart()
                             .on('end',()=>{
                                 flowers.forEach(f=>{
-                                    f.clusters_x = f.x;
-                                    f.clusters_y = f.y;
+                                    f.clusters_x = region.x + f.x;
+                                    f.clusters_y = region.y + f.y;
                                 });
                                 console.log('ended');
 
-                                if (flowers.length > 0) {
-                                    const nestedFlowers = d3.nest()
-                                    .key(d=>d.id.substring(2,3))
-                                    .entries(flowers);
-
-                                    let bands_x = 0;
-                                    nestedFlowers.forEach(band=>{
-                                        const percentage = band.values.length/flowers.length;
-                                        const band_width = percentage;
-                                        bands_x += band_width;
-                                        band.values.forEach(f=>{
-                                            f.stripes_x = Number(bands_x + d3.randomUniform(-band_width,0)()).toFixed(3);
-                                            f.stripes_y = Number(d3.randomUniform(0, 1)().toFixed(3));
-
-                                            delete f.x;
-                                            delete f.y;
-                                            delete f.vx;
-                                            delete f.vy;
-                                            delete f.index;
-                                        })
-                                    })
-                                    
-                                    try {
-                                        let fields = Object.keys(flowers[0]);
-                                        let opts = { fields, header: true };
-                                        let parser = new Parser(opts);
-                                        let csv = parser.parse(flowers);
-                                        let daily_csv = `public/data/italy/${date.key.replace(/:/g,'-')}.csv`;
-                                        if (!fs.existsSync(daily_csv)) {
-                                            fs.writeFileSync(daily_csv, csv);   
-                                        } else {
-                                            opts = { fields, header: false };
-                                            parser = new Parser(opts);
-                                            csv = parser.parse(flowers);
-                                            csv = '\n'+csv;
-                                            fs.appendFileSync(daily_csv, csv);
-                                        }
-                                    } catch (err) {
-                                        console.error(err);
-                                    }
-                                }
-                                
+                                flowers_of_today = flowers_of_today.concat(flowers);
 
                                 counter++;
                                 if (counter<regions.length){
                                     regional_flowers(counter);
                                 } else {
+                                    shuffle(flowers_of_today);
+                                    const nestedFlowers = d3.nest()
+                                        .key(d=>d.id.substring(2,3))
+                                        .entries(flowers_of_today);
+                                    
+                                    let bands_x = 0;
+                                    const cat_amount = Object.keys(categories_codes_inverted).length;
+                                    for (let i=1; i<=cat_amount; ++i) {
+                                        const band = nestedFlowers.find(d=>d.key===i.toString());
+
+                                        if (band) {
+                                            const percentage = band.values.length/flowers_of_today.length;
+                                            const band_width = 1*percentage;
+                                            bands_x += band_width;
+                                            band.values.forEach(f=>{
+                                                f.stripes_x = Number(bands_x + d3.randomUniform(-band_width,0)()).toFixed(3);
+                                                f.stripes_y = Number(d3.randomUniform(0, 1)().toFixed(3));
+
+                                                delete f.x;
+                                                delete f.y;
+                                                delete f.vx;
+                                                delete f.vy;
+                                                delete f.index;
+                                            })
+                                        }
+                                    };
+
+                                    try {
+                                        let fields = Object.keys(flowers_of_today[0]);
+                                        let opts = { fields, header: true };
+                                        let parser = new Parser(opts);
+                                        let csv = parser.parse(flowers_of_today);
+                                        let daily_csv = `public/data/italy/${date.key.replace(/:/g,'-')}.csv`;
+                                        fs.writeFileSync(daily_csv, csv); 
+                                    } catch (err) {
+                                        console.error(err);
+                                    }
+                                    
+
                                     dateCounter++
                                     if (dateCounter<dataByDates.length){
                                         doDates(dateCounter);
@@ -362,18 +384,30 @@ request.get(data_url, function (error, response, body) {
                     });
             }
 
+            console.log('Simulation is running');
             const simulation_regions = d3.forceSimulation(regions)
-            .force('x', d3.forceX(d=>d.x))
-            .force('y', d3.forceY(d=>d.y))
-            .force('collision', d3.forceCollide(d=>radius(d.total)))
-            .on('end',()=>{
-                    console.log('Regions positioned');
-                    regional_flowers(counter);
-            })
-            .alpha(1)
-            .restart();
+                .force('x', d3.forceX(d=>d.center_x).strength(0.5))
+                .force('y', d3.forceY(d=>d.center_y).strength(0.5))
+                .force('collision', d3.forceCollide(d=>d.r))
+                .on('end',()=>{
+                        console.log('Regions positioned');
+
+                        let fields = Object.keys(regions[0]);
+                        let opts = { fields, header: true };
+                        let parser = new Parser(opts);
+                        let csv = parser.parse(regions);
+                        let fileName = `public/data/italy/${date.key.replace(/:/g,'-')}-regions.csv`;
+                        fs.writeFileSync(fileName, csv);
+
+                        regional_flowers(counter);
+                })
+                .alpha(1)
+                .restart();
         }
     }   // request
+    else {
+        console.log(error, response)
+    }
 });
 
 /**
