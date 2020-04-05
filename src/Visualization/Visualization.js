@@ -123,7 +123,7 @@ class Visualization extends Component {
           sprite.y = 50;
           sprite.anchor.x = 0.5;
           sprite.anchor.y = 0.5;
-          const pixel_size = 10;
+          const pixel_size = 13;
           sprite.scaleValues = [1/textures[category].orig.width * pixel_size,1/textures[category].orig.height * pixel_size]
           sprite.scale.x = sprite.scaleValues[0];
           sprite.scale.y = sprite.scaleValues[1];
