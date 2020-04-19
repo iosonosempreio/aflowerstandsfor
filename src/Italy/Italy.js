@@ -29,26 +29,16 @@ class Italy extends Component {
     this.setState({data:data,regionsInfo:regionsInfo,topojson:topojson});
   }
   render() {
-    const header = {width:'100%', height:'72px'}
-    const viz = {width:'100%', height:'calc(100% - 72px)'}
-
-    return <div className="italy" ref={this._setRef.bind(this)}>
-      <div className="navigation">
-        <Link to="/home">Home</Link>
-        <Link to="/about">About</Link>
-        <div>
-          Morti COntagiati Guariti
-        </div>
-        ITA
-      </div>
+    return <div style={{gridColumn: '1 / -1', gridRow: '1 / -1'}} ref={this._setRef.bind(this)}>
       {!this.state.data && <div>Loading data...</div>}
-      {/* {this.state.data && <Visualization style={viz} data={this.state.data} regionsInfo={this.state.regionsInfo} topojson={this.state.topojson} country_info={country_info}/>} */}
+      {this.state.data && <Visualization data={this.state.data} regionsInfo={this.state.regionsInfo} topojson={this.state.topojson} country_info={country_info}/>}
     </div>;
   }
 }
 export default Italy;
 
 const country_info = {
+  'country_name':'Italy',
   'country_code':'380',
   'regions_codes':{
     '13':'Abruzzo',

@@ -5,6 +5,10 @@ import * as topojson from 'topojson';
 import { Viewport } from "pixi-viewport";
 import Utilities from '../Utilities/Utilities';
 
+import { Link } from "react-router-dom";
+
+import './Visualization.css';
+
 let app, viewport, flowersContainer, geography, regionsInfo, textures,
     dpr=window.devicePixelRatio || 1,
     width=window.innerWidth,
@@ -29,6 +33,7 @@ class Visualization extends Component {
     this._rootNode = componentNode;
   }
   componentDidMount(){
+    document.getElementsByClassName('App')[0].classList.add("visualization-component");
     // Handle unique IDS
     const unique_IDS_dictionary = {};
     available_dates = Object.keys(this.props.data);
@@ -49,7 +54,8 @@ class Visualization extends Component {
     app = new PIXI.Application({
       width: width,
       height: height,
-      backgroundColor: 0xfafafa,
+      // backgroundColor: 0xfafafa,
+      transparent:true,
       autoDensity:true,
       resolution: dpr,
       powerPreference: 'high-performance',
@@ -91,8 +97,12 @@ class Visualization extends Component {
     world.features.filter(d=>d.id===this.props.country_info.country_code).forEach(feature=>{
       const this_graphic = new PIXI.Graphics();
       path.projection(projection).context(this_graphic);
-      this_graphic.beginFill(0xdfffd6, 1);
-      this_graphic.lineStyle(1, 0xfafafa, 0.5);
+      const land_fill = getComputedStyle(document.documentElement).getPropertyValue( "--map-land-fill" ).replace('#','0x');
+      const land_stroke = getComputedStyle(document.documentElement).getPropertyValue( "--map-land-stroke" ).replace('#','0x');
+      this_graphic.beginFill(land_fill, 1);
+      if (!land_stroke.includes('none')){
+        this_graphic.lineStyle(1, land_stroke, 0.5);
+      }
       path(feature);
       this_graphic.endFill();
       geography.addChild(this_graphic);
@@ -183,10 +193,20 @@ class Visualization extends Component {
   changeModel(newModel){
     this.setState({model:newModel});
   }
+  componentWillUnmount(){
+    document.getElementsByClassName('App')[0].classList.remove("visualization-component");
+  }
   render() {
-    return <div style={this.props.style} ref={this._setRef.bind(this)}>
+    return <div className="visualization-container" data-country-name={this.props.country_info.country_name.toLowerCase()} ref={this._setRef.bind(this)}>
       <div id="visualization"></div>
-      <div id="controls" style={{position:'fixed', top:0}}>
+      <div className="header">
+        <Link to="/"><h6 style={{textAlign: 'left'}}>Home</h6></Link>
+        <h4 style={{textAlign: 'center'}}>aflowerstandsfor</h4>
+        <Link to="/info"><h6 style={{textAlign: 'right'}}>Info</h6></Link>
+      </div>
+      <div className="selector-date">DATESSS</div>
+      <div className="selector-layout">LAYOUTS</div>
+      {/* <div id="controls" style={{position:'fixed', top:0}}>
         <p>
           <input type="button" name="prev-date" value="previous day" onClick={ ()=>this.changeDate(this.state.day_index-1) } />
           {this.state.day && <span>{this.state.day}</span>}
@@ -195,7 +215,7 @@ class Visualization extends Component {
           <input type="button" name="bunch" value="bunches" onClick={ ()=>this.changeModel('bunches') } />
           <input type="button" name="clusters" value="clusters" onClick={ ()=>this.changeModel('clusters') } />
         </p>
-      </div>
+      </div> */}
     </div>;
   }
 }

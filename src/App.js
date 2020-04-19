@@ -1,12 +1,11 @@
 import React from 'react';
 import './App.css';
-
-import Main from './Main/Main'
+import Root from './Root/Root'
 
 function App() {
   return (
     <div className="App">
-      <Main />
+      <Root language={navigator.language}/>
     </div>
   );
 }

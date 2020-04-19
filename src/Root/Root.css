@@ -1,0 +1,49 @@
+/* Root.css */
+.App {
+    background-color: var(--nude);
+    grid-template-columns: 100%;
+    grid-template-rows: 4rem 3rem auto 7rem 7rem 7rem;
+}
+
+.title-box {
+    border-top: 1px solid var(--dark);
+    display: flex;
+    align-items: center;
+    padding: 20px;
+  }
+
+.country {
+    background-color: var(--bright);
+    border-top: 1px solid var(--dark);
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.country.active {
+    background-color: transparent;
+}
+
+/* tablet portrait */
+@media all and (min-width: 768px) {
+    .App {
+        background-color: var(--nude);
+        grid-template-columns: 100%;
+        grid-template-rows: 6rem 4rem auto 10rem 10rem 10rem;
+    }
+}
+  
+/* tablet landscape and up */
+@media all and (min-width: 1024px) {
+    .App {
+        background-color: var(--nude);
+        grid-template-columns: 50% 50%;
+        grid-template-rows: 6rem 5rem repeat(3, auto);
+    }
+    .title-box {
+        grid-column: 1 / span 1;
+        grid-row: 1 / -1;
+        border-top: none;
+        padding: 30px;
+    }
+}
