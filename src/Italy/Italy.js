@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import * as d3 from 'd3';
 import Visualization from '../Visualization/Visualization';
 
+import { Link } from "react-router-dom";
+
 class Italy extends Component {
   constructor(props) {
     super(props);
@@ -27,9 +29,20 @@ class Italy extends Component {
     this.setState({data:data,regionsInfo:regionsInfo,topojson:topojson});
   }
   render() {
+    const header = {width:'100%', height:'72px'}
+    const viz = {width:'100%', height:'calc(100% - 72px)'}
+
     return <div className="italy" ref={this._setRef.bind(this)}>
+      <div className="navigation">
+        <Link to="/home">Home</Link>
+        <Link to="/about">About</Link>
+        <div>
+          Morti COntagiati Guariti
+        </div>
+        ITA
+      </div>
       {!this.state.data && <div>Loading data...</div>}
-      {this.state.data && <Visualization data={this.state.data} regionsInfo={this.state.regionsInfo} topojson={this.state.topojson} country_info={country_info}/>}
+      {/* {this.state.data && <Visualization style={viz} data={this.state.data} regionsInfo={this.state.regionsInfo} topojson={this.state.topojson} country_info={country_info}/>} */}
     </div>;
   }
 }

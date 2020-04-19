@@ -184,7 +184,7 @@ class Visualization extends Component {
     this.setState({model:newModel});
   }
   render() {
-    return <div style={{width:'100%',height:'100%'}} ref={this._setRef.bind(this)}>
+    return <div style={this.props.style} ref={this._setRef.bind(this)}>
       <div id="visualization"></div>
       <div id="controls" style={{position:'fixed', top:0}}>
         <p>
