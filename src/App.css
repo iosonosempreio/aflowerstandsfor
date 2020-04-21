@@ -108,6 +108,14 @@ h6 {
   background-color: transparent;
 }
 
+button:focus {
+  outline: none;
+}
+
+.blend-multiply {
+  mix-blend-mode: multiply;
+}
+
 /* tablet portrait */
 @media all and (min-width: 768px) {
   h1 {font-size: 96px;}

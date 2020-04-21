@@ -11,6 +11,7 @@ import './Visualization.css';
 
 let app, viewport, flowersContainer, geography, regionsInfo, textures,
     dpr=window.devicePixelRatio || 1,
+    rem = getComputedStyle(document.documentElement).getPropertyValue( "font-size" ).replace('px',''),
     width=window.innerWidth,
     height=window.innerHeight,
     available_dates,
@@ -18,6 +19,8 @@ let app, viewport, flowersContainer, geography, regionsInfo, textures,
     path = d3.geoPath(),
     updateQueue=[],
     prevTime=0;
+
+console.log(rem)
 
 class Visualization extends Component {
   constructor(props){
@@ -204,18 +207,17 @@ class Visualization extends Component {
         <h4 style={{textAlign: 'center'}}>aflowerstandsfor</h4>
         <Link to="/info"><h6 style={{textAlign: 'right'}}>Info</h6></Link>
       </div>
-      <div className="selector-date">DATESSS</div>
-      <div className="selector-layout">LAYOUTS</div>
-      {/* <div id="controls" style={{position:'fixed', top:0}}>
-        <p>
-          <input type="button" name="prev-date" value="previous day" onClick={ ()=>this.changeDate(this.state.day_index-1) } />
-          {this.state.day && <span>{this.state.day}</span>}
-          <input type="button" name="prev-date" value="next day" onClick={ ()=>this.changeDate(this.state.day_index+1) } />
-          <input type="button" name="bands" value="stripes" onClick={ ()=>this.changeModel('stripes') } />
-          <input type="button" name="bunch" value="bunches" onClick={ ()=>this.changeModel('bunches') } />
-          <input type="button" name="clusters" value="clusters" onClick={ ()=>this.changeModel('clusters') } />
-        </p>
-      </div> */}
+      <div className="selector-date">
+        <button type="button" onClick={ ()=>this.changeDate(this.state.day_index-1) }><h5>{'<-'}</h5></button>
+        <div className="selected-date blend-multiply"><h5>{this.state.day}</h5></div>
+        <button type="button" onClick={ ()=>this.changeDate(this.state.day_index+1) }><h5>{'->'}</h5></button>
+      </div>
+      <div className="selector-layout">
+        <button className={`blend-multiply ${this.state.model==='stripes'?'active':''}`} type="button" onClick={ ()=>this.changeModel('stripes') }><h5>overview</h5></button>
+        <button className={`blend-multiply ${this.state.model==='bunches'?'active':''}`} type="button" onClick={ ()=>this.changeModel('bunches') }><h5>regions</h5></button>
+        <button className={`blend-multiply ${this.state.model==='clusters'?'active':''}`} type="button" onClick={ ()=>this.changeModel('clusters') }><h5>details</h5></button>
+      </div>
+      
     </div>;
   }
 }

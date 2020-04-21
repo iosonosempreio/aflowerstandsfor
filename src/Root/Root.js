@@ -34,9 +34,9 @@ class Root extends Component {
           </div>
 
           <div className="selector languages">
-            <button type="button" onClick={()=>{this.changeLanguage('hi-HI')}}>hindi</button>
-            <button type="button" onClick={()=>{this.changeLanguage('it-IT')}}>italian</button>
-            <button type="button" className="active" onClick={()=>{this.changeLanguage('en-US')}}>english</button>
+            <button type="button" onClick={()=>{this.changeLanguage('hi-HI')}}><h5>hindi</h5></button>
+            <button type="button" onClick={()=>{this.changeLanguage('it-IT')}}><h5>italian</h5></button>
+            <button type="button" className="active" onClick={()=>{this.changeLanguage('en-US')}}><h5>english</h5></button>
           </div>
 
           <div className="title-box">
