@@ -27,7 +27,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "update-italy": "node src/Utilities/data-update-italy.js",
-    "create-textures-atlas": "gf-pack -format pixi.js --resizeWidth 40 --resizeHeight 40 --path 'public/' --name 'flowers-textures' public/textures/*.png"
+    "create-textures-atlas": "gf-pack -format pixi.js --resizeWidth 120 --resizeHeight 120 --path 'public/' --name 'flowers-textures' public/textures/*.png"
   },
   "eslintConfig": {
     "extends": "react-app"

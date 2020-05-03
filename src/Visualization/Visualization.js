@@ -20,8 +20,6 @@ let app, viewport, flowersContainer, geography, regionsInfo, textures,
     updateQueue=[],
     prevTime=0;
 
-console.log(rem)
-
 class Visualization extends Component {
   constructor(props){
     super(props);

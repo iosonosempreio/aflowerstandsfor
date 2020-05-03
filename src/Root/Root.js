@@ -3,6 +3,8 @@ import { HashRouter, Route, Link, useLocation } from "react-router-dom";
 
 import './Root.css';
 
+import Meadow from '../Meadow';
+
 import Test from '../Test';
 import PixiViz from '../PixiViz';
 import VizView from '../VizView';
@@ -27,25 +29,27 @@ class Root extends Component {
     return <HashRouter basename="/">
         <Route exact path="/">
           
-          <div className="header">
+          <Meadow style={{position:'absolute',width:'100%',height:'100%'}} />
+
+          <div className="header" style={{position:'relative'}}>
             <Link to="/"><h6 style={{textAlign: 'left'}}>Home</h6></Link>
             <h4 style={{textAlign: 'center'}}>aflowerstandsfor</h4>
             <Link to="/info"><h6 style={{textAlign: 'right'}}>Info</h6></Link>
           </div>
 
-          <div className="selector languages">
+          <div className="selector languages" style={{position:'relative'}}>
             <button type="button" onClick={()=>{this.changeLanguage('hi-HI')}}><h5>hindi</h5></button>
             <button type="button" onClick={()=>{this.changeLanguage('it-IT')}}><h5>italian</h5></button>
             <button type="button" className="active" onClick={()=>{this.changeLanguage('en-US')}}><h5>english</h5></button>
           </div>
 
-          <div className="title-box">
-            <h1>A 🌸 stands for a CoViD-19 case in:</h1>
+          <div className="title-box" style={{position:'relative'}}>
+            <h1>A flower stands for a CoViD-19 case, in one of these countries:</h1>
           </div>
 
-          <Link className="country" to="/india"><h3>India</h3></Link>
-          <Link className="country" to="/italy"><h3>Italy</h3></Link>
-          <Link className="country" to="/canada"><h3>Canada</h3></Link>
+          <Link className="country" style={{position:'relative'}} to="/india"><h3>India</h3></Link>
+          <Link className="country" style={{position:'relative'}} to="/italy"><h3>Italy</h3></Link>
+          <Link className="country" style={{position:'relative'}} to="/canada"><h3>Canada</h3></Link>
           
         </Route>
         <Route path="/menumenu">
@@ -82,6 +86,9 @@ class Root extends Component {
         </Route>
         <Route path="/italy">
           <Italy />
+        </Route>
+        <Route path="/meadow">
+          <Meadow style={{position:'absolute',width:'100%',height:'100%'}} />
         </Route>
         <Route path="/styles">
           <h1>Header 1</h1>

@@ -100,6 +100,7 @@ h6 {
 .selector button {
   background-color: var(--bright);
   border: none;
+  border-top: 1px solid var(--dark);
 }
 .selector button:not(:last-of-type) {
   border-right: 1px solid var(--dark);
