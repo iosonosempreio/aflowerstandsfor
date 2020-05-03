@@ -8,6 +8,7 @@ import PixiViz from '../PixiViz';
 import VizView from '../VizView';
 import PIXIPerformancesTest from '../PIXIPerformancesTest';
 import Italy from '../Italy';
+import Info from '../Info';
 
 import 'victormono';
 
@@ -26,7 +27,7 @@ class Root extends Component {
     // console.log(this.props.language)
     return <HashRouter basename="/">
         <Route exact path="/">
-          
+
           <div className="header">
             <Link to="/"><h6 style={{textAlign: 'left'}}>Home</h6></Link>
             <h4 style={{textAlign: 'center'}}>aflowerstandsfor</h4>
@@ -40,13 +41,13 @@ class Root extends Component {
           </div>
 
           <div className="title-box">
-            <h1>A 🌸 stands for a CoViD-19 case in:</h1>
+            <h1>A flower stands for a CoronaVirus Diseaese - 19 case in</h1>
           </div>
 
           <Link className="country" to="/india"><h3>India</h3></Link>
           <Link className="country" to="/italy"><h3>Italy</h3></Link>
           <Link className="country" to="/canada"><h3>Canada</h3></Link>
-          
+
         </Route>
         <Route path="/menumenu">
           {
@@ -70,6 +71,9 @@ class Root extends Component {
         </Route>
         <Route path="/svg">
           <Test />
+        </Route>
+        <Route path="/info">
+          <Info />
         </Route>
         <Route path="/pixi">
           <PixiViz />

@@ -153,7 +153,7 @@ class Visualization extends Component {
           for(let i=0; i < updateQueue.length;++i)
           {
             updateQueue[i](deltaTime);
-          }      
+          }
           app.renderer.render(viewport);
           requestAnimationFrame(update);
         }
@@ -222,8 +222,8 @@ class Visualization extends Component {
 
 class ViewBuffer{
   /**
-   * 
-   * @param {{id:Flower}} Sprites 
+   *
+   * @param {{id:Flower}} Sprites
    * @param {PIXI.ParticleContainer} container
    */
   constructor(Sprites, container)
@@ -247,7 +247,7 @@ class ViewBuffer{
   }
   drawObjects(){
     if(this.model === "stripes")
-    { 
+    {
       const margin = 20;
       for(let i=0; i < this.drawList.length; ++i)
       {
@@ -286,16 +286,16 @@ class ViewBuffer{
     })
   }
   /**
-   * 
-   * @param {Number} animationTime - in seconds 
-   * @param {PIXI.Application} app 
+   *
+   * @param {Number} animationTime - in seconds
+   * @param {PIXI.Application} app
    */
   startAnimation(animationTime, app){
     this.animationTime = animationTime;
     this.timeLeft = 0;
     this.app = app;
     if(this.model==="stripes")
-    { 
+    {
       const margin = 20;
       for(let i=0; i < this.drawList.length; ++i)
       {
@@ -351,7 +351,7 @@ class Flower extends PIXI.Sprite{
   }
   moveToNextPoint(t){
     this.position.x = (1-t) * this.lastPoint.x + t * this.nextPoint.x;
-    this.position.y = (1-t) * this.lastPoint.y + t * this.nextPoint.y; 
+    this.position.y = (1-t) * this.lastPoint.y + t * this.nextPoint.y;
   }
 }
 

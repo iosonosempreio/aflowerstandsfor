@@ -69,6 +69,10 @@ h6 {
   margin: 0;
 }
 
+h6:hover{
+  color:blue;
+}
+
 .App {
   min-height: 100vh;
   width: 100vw;
