@@ -104,12 +104,21 @@ h6:hover{
 .selector button {
   background-color: var(--bright);
   border: none;
+  border-top: 1px solid var(--dark);
 }
 .selector button:not(:last-of-type) {
   border-right: 1px solid var(--dark);
 }
 .selector button.active {
   background-color: transparent;
+}
+
+button:focus {
+  outline: none;
+}
+
+.blend-multiply {
+  mix-blend-mode: multiply;
 }
 
 /* tablet portrait */

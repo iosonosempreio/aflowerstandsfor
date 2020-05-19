@@ -16,6 +16,7 @@
 #visualization {
     grid-column: 1 / -1;
     grid-row: 1 / -1;
+    overflow: hidden;
 }
 
 .visualization-component .header {
@@ -24,14 +25,70 @@
     z-index: 10000;
 }
 
-.visualization-component .selector-date {
+.selector-date {
     grid-column: 1 / -1;
     grid-row: 2 / span 1;
     z-index: 10000;
+    display: grid;
+    grid-template-columns: 5rem auto 5rem;
+    border-top:  1px solid var(--dark);
+    border-bottom:  1px solid var(--dark);
 }
-
-.visualization-component .selector-layout {
+.selector-layout {
+    z-index: 10000;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border-top:  1px solid var(--dark);
+}
+.selector-layout button:not(:last-of-type) {
+    border-right: 1px solid var(--dark);
+}
+.selected-date {
+    background-color: var(--nude);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.selector-date > * {
+    grid-row: 1 / span 1;
+    overflow: hidden;
+}
+.selector-date > *:not(:last-child) {
+    border-right: 1px solid var(--dark);
+}
+.selector-date h3 {
+    font-style: normal;
+    text-align: center;
+}
+.selector-layout {
     grid-column: 1 / -1;
     grid-row: -2 / span 1;
     z-index: 10000;
 }
+.visualization-component button {
+    background-color: transparent;
+}
+
+.visualization-component button.active {
+    background-color: var(--nude);
+}
+
+/* tablet portrait */
+@media all and (min-width: 768px) {
+    .visualization-container {
+        grid-template-rows: 4rem 4rem auto 4em;
+    }
+    .selector-date {
+        grid-template-columns: 10rem auto 10rem;
+    }
+  }
+  
+  /* tablet landscape and up */
+  @media all and (min-width: 1024px) {
+    .visualization-container {
+        grid-template-rows: 4rem 5rem auto 5em;
+    }
+    .selector-date {
+        grid-template-columns: 14rem auto 14rem;
+    }
+  }

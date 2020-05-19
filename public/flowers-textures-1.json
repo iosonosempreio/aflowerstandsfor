@@ -1,49 +1,49 @@
 {
 	"meta": {
 		"image": "flowers-textures-1.png",
-		"size": {"w":120,"h":80},
+		"size": {"w":360,"h":240},
 		"scale": "1"
 	},
 	"frames": {
 		"recovered.png":
 		{
-			"frame": {"x":80,"y":0,"w":40,"h":40},
+			"frame": {"x":240,"y":0,"w":120,"h":120},
 			"rotated": false,
 			"trimmed": false,
-			"spriteSourceSize": {"x":0,"y":0,"w":40,"h":40},
-			"sourceSize": {"w":40,"h":40}
+			"spriteSourceSize": {"x":0,"y":0,"w":120,"h":120},
+			"sourceSize": {"w":120,"h":120}
 		},
 		"intensive_cares.png":
 		{
-			"frame": {"x":40,"y":40,"w":40,"h":40},
+			"frame": {"x":120,"y":120,"w":120,"h":120},
 			"rotated": false,
 			"trimmed": false,
-			"spriteSourceSize": {"x":0,"y":0,"w":40,"h":40},
-			"sourceSize": {"w":40,"h":40}
+			"spriteSourceSize": {"x":0,"y":0,"w":120,"h":120},
+			"sourceSize": {"w":120,"h":120}
 		},
 		"hospitalized.png":
 		{
-			"frame": {"x":0,"y":40,"w":40,"h":40},
+			"frame": {"x":0,"y":120,"w":120,"h":120},
 			"rotated": false,
 			"trimmed": false,
-			"spriteSourceSize": {"x":0,"y":0,"w":40,"h":40},
-			"sourceSize": {"w":40,"h":40}
+			"spriteSourceSize": {"x":0,"y":0,"w":120,"h":120},
+			"sourceSize": {"w":120,"h":120}
 		},
 		"home_isolation.png":
 		{
-			"frame": {"x":40,"y":0,"w":40,"h":40},
+			"frame": {"x":120,"y":0,"w":120,"h":120},
 			"rotated": false,
 			"trimmed": false,
-			"spriteSourceSize": {"x":0,"y":0,"w":40,"h":40},
-			"sourceSize": {"w":40,"h":40}
+			"spriteSourceSize": {"x":0,"y":0,"w":120,"h":120},
+			"sourceSize": {"w":120,"h":120}
 		},
 		"deceased.png":
 		{
-			"frame": {"x":0,"y":0,"w":40,"h":40},
+			"frame": {"x":0,"y":0,"w":120,"h":120},
 			"rotated": false,
 			"trimmed": false,
-			"spriteSourceSize": {"x":0,"y":0,"w":40,"h":40},
-			"sourceSize": {"w":40,"h":40}
+			"spriteSourceSize": {"x":0,"y":0,"w":120,"h":120},
+			"sourceSize": {"w":120,"h":120}
 		}
 	}
 }
